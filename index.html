@@ -3,184 +3,381 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fluxo Cash Control</title>
+    <title>Shadow Ledger | Marriott Report</title>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: #f4f4f9; padding: 20px; max-width: 600px; margin: 0 auto; }
-        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 20px; }
-        h1 { font-size: 20px; margin-bottom: 10px; color: #333; }
-        label { display: block; margin-top: 10px; font-size: 12px; color: #666; font-weight: 600; }
-        input, select { width: 100%; padding: 12px; margin-top: 5px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
-        button { width: 100%; padding: 14px; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 20px; }
-        .btn-green { background: #10b981; color: white; }
+        /* --- GLOBAL & DASHBOARD STYLES (Dark Mode) --- */
+        :root {
+            --bg-dark: #1a1a1a;
+            --card-dark: #2d2d2d;
+            --text-light: #e5e5e5;
+            --accent-green: #10b981;
+            --accent-red: #ef4444;
+            /* Marriott Colors */
+            --m-blue: #303f9f;
+            --m-pink: #d81b60;
+        }
+
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
+            margin: 0; padding: 20px; 
+            background-color: var(--bg-dark); 
+            color: var(--text-light);
+            transition: background-color 0.3s;
+        }
+
+        /* DASHBOARD CONTAINER */
+        #dashboard-view { max-width: 600px; margin: 0 auto; }
+        
+        .card { 
+            background: var(--card-dark); 
+            padding: 20px; 
+            border-radius: 12px; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3); 
+            margin-bottom: 20px; 
+            border: 1px solid #404040; 
+        }
+
+        h1 { margin-top: 0; font-size: 20px; }
+        label { display: block; margin-top: 15px; font-size: 11px; color: #a3a3a3; font-weight: 700; text-transform: uppercase; }
+        input, select { 
+            width: 100%; padding: 12px; margin-top: 5px; 
+            background: #404040; border: 1px solid #525252; color: white; 
+            border-radius: 8px; box-sizing: border-box; font-size: 16px; 
+        }
+        
+        /* File Upload Styling */
+        .file-upload-wrapper {
+            position: relative;
+            margin-top: 5px;
+        }
+        .file-upload-wrapper input[type=file] {
+            position: absolute; left: 0; top: 0; opacity: 0; cursor: pointer; height: 100%;
+        }
+        .file-custom-btn {
+            display: block; width: 100%; padding: 10px; 
+            background: #404040; border: 1px dashed #777; 
+            text-align: center; border-radius: 8px; color: #aaa; font-size: 13px;
+        }
+        
+        button { 
+            width: 100%; padding: 14px; border: none; border-radius: 8px; 
+            font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 20px; 
+        }
+        .btn-green { background: var(--accent-green); color: white; }
         .btn-blue { background: #3b82f6; color: white; }
-        .btn-gray { background: #6b7280; color: white; margin-top: 10px; }
-        .status-box { padding: 15px; border-radius: 8px; text-align: center; font-weight: bold; margin-top: 10px; }
-        .positive { background: #fee2e2; color: #b91c1c; } /* You Owe Company */
-        .negative { background: #d1fae5; color: #047857; } /* Company Owes You */
-        .zero { background: #f3f4f6; color: #374151; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 12px; }
-        th, td { text-align: left; padding: 8px; border-bottom: 1px solid #eee; }
-        .delete-btn { color: red; cursor: pointer; font-weight: bold; }
+        .btn-outline { background: transparent; border: 1px solid #555; color: #ccc; margin-top: 10px; }
+
+        /* Status Box */
+        .status-box { padding: 20px; border-radius: 8px; text-align: center; font-weight: bold; margin-top: 10px; font-size: 18px; }
+        .status-pos { background: #7f1d1d; color: #fca5a5; border: 1px solid #991b1b; } /* Owe Company */
+        .status-neg { background: #064e3b; color: #6ee7b7; border: 1px solid #065f46; } /* Company Owes You */
+        .status-zero { background: #404040; color: #ccc; }
+
+        /* Dashboard Table */
+        .dash-table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 13px; }
+        .dash-table th { text-align: left; color: #888; border-bottom: 1px solid #555; padding-bottom: 5px; }
+        .dash-table td { padding: 10px 0; border-bottom: 1px solid #444; }
+
+        /* --- REPORT STYLES (Marriott Mode - Hidden by Default) --- */
+        #report-view { 
+            display: none; 
+            max-width: 950px; 
+            margin: 0 auto; 
+            background: white; 
+            padding: 40px; 
+            color: #222; 
+        }
+
+        .report-header { color: var(--m-blue); font-size: 14px; margin-bottom: 5px; }
+        .report-title { color: var(--m-blue); font-size: 42px; margin: 0; font-weight: 800; letter-spacing: -1px; }
+        .report-range { color: var(--m-pink); font-weight: 700; font-size: 14px; margin-top: 5px; margin-bottom: 40px; }
+
+        .meta-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 30px; margin-bottom: 40px; }
+        .meta-item h3 { font-size: 14px; font-weight: 700; margin: 0 0 5px 0; color: #222; }
+        .meta-item p { font-size: 14px; color: #666; margin: 0; }
+
+        .report-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+        .report-table th { text-align: left; color: var(--m-blue); font-weight: 700; font-size: 14px; padding: 10px 0; border-bottom: 1px solid #eee; }
+        .report-table td { padding: 12px 0; font-size: 13px; color: #444; border-bottom: 1px solid #f0f0f0; }
+        .report-table tr:nth-child(even) { background-color: #f9f9f9; }
+        .col-amt { text-align: right; font-weight: 500; padding-right: 10px; }
+
+        .report-total { text-align: right; margin-top: 20px; color: var(--m-pink); font-size: 32px; font-weight: 700; }
+
+        /* PRINT MEDIA QUERY */
+        @media print {
+            #dashboard-view { display: none !important; }
+            #report-view { display: block !important; padding: 0; margin: 0; }
+            .no-print { display: none !important; }
+            body { background-color: white; padding: 0; }
+        }
     </style>
 </head>
 <body>
 
-    <div class="card">
-        <h1>📊 Fluxo Live Position</h1>
-        <div id="statusDisplay" class="status-box zero">Loading...</div>
-        <div style="display: flex; justify-content: space-between; margin-top: 15px; font-size: 14px;">
-            <div>📥 Collected: <span id="totalCol">0.00</span></div>
-            <div>📤 Deposited: <span id="totalDep">0.00</span></div>
+    <div id="dashboard-view">
+        <div class="card">
+            <h1 style="float:left;">🌑 Shadow Ledger</h1>
+            <button onclick="switchView('report')" style="float:right; width:auto; margin:0; padding:5px 10px; font-size:12px;" class="btn-blue">📄 View Official Report</button>
+            <div style="clear:both;"></div>
+            
+            <div id="statusDisplay" class="status-box status-zero">Loading...</div>
+            <div style="display: flex; justify-content: space-between; margin-top: 15px; font-size: 13px; color: #aaa;">
+                <div>📥 Collected: <span id="dashCol" style="color:white">0.00</span></div>
+                <div>📤 Deposited: <span id="dashDep" style="color:white">0.00</span></div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h1>📝 Add Transaction</h1>
+            
+            <label>Type</label>
+            <select id="inType">
+                <option value="COLLECT">📥 Collection (Cash In)</option>
+                <option value="DEPOSIT">📤 Deposit (Cash Out)</option>
+                <option value="COMMISSION">💰 Commission (Offset)</option>
+            </select>
+
+            <label>Description</label>
+            <input type="text" id="inDesc" placeholder="e.g. Safari - Jogi">
+
+            <label>Amount (AED)</label>
+            <input type="number" id="inAmt" placeholder="0.00" step="0.01">
+
+            <label>Reference / Receipt Upload</label>
+            <div class="file-upload-wrapper">
+                <div class="file-custom-btn" id="fileLabel">📎 Click to attach receipt (Image/PDF)</div>
+                <input type="file" id="inFile" onchange="handleFileSelect(this)">
+            </div>
+            <input type="hidden" id="inRefText">
+
+            <button class="btn-green" onclick="addTransaction()">Save Transaction</button>
+        </div>
+
+        <div class="card">
+            <h1>Recent Activity <span style="float:right; font-size:12px; cursor:pointer; color:#ef4444;" onclick="clearData()">[Reset]</span></h1>
+            <table class="dash-table">
+                <thead><tr><th>Date</th><th>Type</th><th>Amt</th><th>Ref</th><th></th></tr></thead>
+                <tbody id="dashBody"></tbody>
+            </table>
         </div>
     </div>
 
-    <div class="card">
-        <h1>📝 New Transaction</h1>
-        <label>Type</label>
-        <select id="type">
-            <option value="COLLECT">📥 Collection (Cash In)</option>
-            <option value="DEPOSIT">📤 Deposit (Cash Out)</option>
-            <option value="COMMISSION">💰 Commission (Offset)</option>
-        </select>
+    <div id="report-view">
+        <div class="no-print" style="margin-bottom: 20px;">
+            <button onclick="switchView('dashboard')" style="width:auto; padding: 8px 15px; font-size:14px; background:#444; color:white;">← Back to Dashboard</button>
+            <button onclick="window.print()" style="width:auto; padding: 8px 15px; font-size:14px; float:right; background:#303f9f; color:white;">🖨️ Print / Save PDF</button>
+        </div>
 
-        <label>Description / Client Name</label>
-        <input type="text" id="desc" placeholder="e.g. Safari - Jogi">
+        <div class="report-header">Courtyard By Marriott, Al Barsha</div>
+        <h1 class="report-title">Cash Ledger</h1>
+        <div class="report-range" id="reportDateRange">Aug 1, 2025 - Jan 6, 2026</div>
 
-        <label>Amount (AED)</label>
-        <input type="number" id="amount" placeholder="0.00" step="0.01">
+        <div class="meta-grid">
+            <div class="meta-item">
+                <h3>Name</h3><p>Ahmed Backer</p>
+                <h3 style="margin-top:15px;">Manager</h3><p>Ankur</p>
+            </div>
+            <div class="meta-item">
+                <h3>Employee ID</h3><p>Travel Desk</p>
+                <h3 style="margin-top:15px;">Purpose</h3><p>Cash Flow</p>
+            </div>
+            <div class="meta-item">
+                <h3>Department</h3><p>Travel Desk</p>
+            </div>
+        </div>
 
-        <label>Reference (Bill # / Receipt)</label>
-        <input type="text" id="ref" placeholder="Reference ID">
-
-        <button class="btn-green" onclick="addTransaction()">Save Transaction</button>
-        <button class="btn-blue" onclick="copyEmail()">📧 Copy Report for Finance</button>
-    </div>
-
-    <div class="card">
-        <h1>📜 History <button style="width:auto; padding:5px 10px; font-size:12px; float:right;" class="btn-gray" onclick="clearData()">Reset</button></h1>
-        <table id="historyTable">
+        <table class="report-table">
             <thead>
                 <tr>
-                    <th>Date</th>
-                    <th>Type</th>
-                    <th>Amt</th>
-                    <th>Ref</th>
-                    <th></th>
+                    <th style="width:15%">Date</th>
+                    <th style="width:15%">Category</th>
+                    <th style="width:35%">Description</th>
+                    <th style="width:20%">Reference / Receipt</th>
+                    <th class="col-amt">Amount</th>
                 </tr>
             </thead>
-            <tbody id="tableBody"></tbody>
+            <tbody id="reportBody"></tbody>
         </table>
+
+        <div class="report-total" id="reportTotal">dh0.00</div>
     </div>
 
     <script>
         // --- LOGIC ENGINE ---
-        let ledger = JSON.parse(localStorage.getItem('fluxo_ledger')) || [];
+        let ledger = JSON.parse(localStorage.getItem('shadow_ledger_final')) || [];
 
         function render() {
-            const tbody = document.getElementById('tableBody');
-            tbody.innerHTML = '';
+            // Render Dashboard Table
+            const dashBody = document.getElementById('dashBody');
+            dashBody.innerHTML = '';
             
-            let totalCol = 0;
-            let totalDep = 0;
-            let totalCom = 0;
+            // Sort Descending for Dashboard (Newest First)
+            const sortedDash = ledger.slice().reverse();
+            
+            let totalCol = 0, totalDep = 0, totalCom = 0;
 
-            // Sort by new first
-            ledger.slice().reverse().forEach((item, index) => {
-                // Calculate Totals
+            sortedDash.forEach((item, index) => {
                 const amt = parseFloat(item.amount);
-                if (item.type === 'COLLECT') totalCol += amt;
-                if (item.type === 'DEPOSIT') totalDep += amt;
-                if (item.type === 'COMMISSION') totalCom += amt;
+                if(item.type === 'COLLECT') totalCol += amt;
+                if(item.type === 'DEPOSIT') totalDep += amt;
+                if(item.type === 'COMMISSION') totalCom += amt;
 
-                // Render Row
-                const row = `<tr>
-                    <td>${item.date}</td>
-                    <td>${item.type === 'COLLECT' ? '📥' : (item.type === 'DEPOSIT' ? '📤' : '💰')}</td>
-                    <td>${amt.toFixed(2)}</td>
-                    <td>${item.ref}</td>
-                    <td><span class="delete-btn" onclick="deleteItem(${ledger.length - 1 - index})">x</span></td>
-                </tr>`;
-                tbody.innerHTML += row;
+                // Dashboard Row
+                dashBody.innerHTML += `
+                    <tr>
+                        <td>${item.date.substring(5)}</td>
+                        <td>${getTypeIcon(item.type)}</td>
+                        <td>${amt.toFixed(2)}</td>
+                        <td style="font-size:11px; color:#888;">${truncate(item.ref, 10)}</td>
+                        <td style="color:#ef4444; cursor:pointer;" onclick="deleteItem(${ledger.length - 1 - index})">×</td>
+                    </tr>
+                `;
             });
 
-            // Update Dashboard
+            // Update Dashboard Stats
             const net = totalCol - totalDep - totalCom;
-            document.getElementById('totalCol').innerText = totalCol.toFixed(2);
-            document.getElementById('totalDep').innerText = totalDep.toFixed(2);
+            document.getElementById('dashCol').innerText = totalCol.toFixed(2);
+            document.getElementById('dashDep').innerText = totalDep.toFixed(2);
             
-            const statusDiv = document.getElementById('statusDisplay');
-            if (net > 0) {
-                statusDiv.className = 'status-box positive';
-                statusDiv.innerHTML = `🔴 YOU OWE COMPANY: AED ${net.toFixed(2)}`;
+            const statusBox = document.getElementById('statusDisplay');
+            if(net > 0) {
+                statusBox.className = 'status-box status-pos';
+                statusBox.innerHTML = `PAYABLE TO COMPANY<br>AED ${net.toFixed(2)}`;
             } else if (net < 0) {
-                statusDiv.className = 'status-box negative';
-                statusDiv.innerHTML = `🟢 COMPANY OWES YOU: AED ${Math.abs(net).toFixed(2)}`;
+                statusBox.className = 'status-box status-neg';
+                statusBox.innerHTML = `COMPANY OWES YOU<br>AED ${Math.abs(net).toFixed(2)}`;
             } else {
-                statusDiv.className = 'status-box zero';
-                statusDiv.innerHTML = `⚪ ALL SETTLED`;
+                statusBox.className = 'status-box status-zero';
+                statusBox.innerHTML = `ALL SETTLED`;
             }
+
+            // Render Report Table (Marriott Style)
+            const reportBody = document.getElementById('reportBody');
+            reportBody.innerHTML = '';
+            
+            // Sort Ascending for Report (Oldest First)
+            const sortedReport = ledger.slice().sort((a,b) => new Date(a.date) - new Date(b.date));
+            
+            if(sortedReport.length > 0) {
+                 const d1 = new Date(sortedReport[0].date).toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'});
+                 const d2 = new Date(sortedReport[sortedReport.length-1].date).toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'});
+                 document.getElementById('reportDateRange').innerText = `${d1} - ${d2}`;
+            }
+
+            let reportNet = 0;
+            sortedReport.forEach(item => {
+                const amt = parseFloat(item.amount);
+                if(item.type === 'COLLECT') reportNet += amt;
+                if(item.type === 'DEPOSIT') reportNet -= amt;
+                if(item.type === 'COMMISSION') reportNet -= amt;
+
+                reportBody.innerHTML += `
+                    <tr>
+                        <td>${new Date(item.date).toLocaleDateString('en-US', {month:'short', day:'numeric'})}</td>
+                        <td><strong>${toTitleCase(item.type)}</strong></td>
+                        <td>${item.desc}</td>
+                        <td style="color:#666; font-style:italic;">${item.ref || '-'}</td>
+                        <td class="col-amt">dh${amt.toLocaleString('en-US', {minimumFractionDigits: 2})}</td>
+                    </tr>
+                `;
+            });
+
+            // Report Total Logic
+            const reportTotalEl = document.getElementById('reportTotal');
+            reportTotalEl.innerText = `dh${Math.abs(reportNet).toLocaleString('en-US', {minimumFractionDigits: 2})}`;
+            if(reportNet > 0) { reportTotalEl.style.color = '#d81b60'; } // Pink (Payable)
+            else if (reportNet < 0) { reportTotalEl.style.color = '#064e3b'; } // Green (Asset)
+            else { reportTotalEl.style.color = '#ccc'; }
         }
 
+        // --- ACTIONS ---
         function addTransaction() {
-            const type = document.getElementById('type').value;
-            const desc = document.getElementById('desc').value;
-            const amount = document.getElementById('amount').value;
-            const ref = document.getElementById('ref').value;
+            const type = document.getElementById('inType').value;
+            const desc = document.getElementById('inDesc').value;
+            const amt = document.getElementById('inAmt').value;
+            const ref = document.getElementById('inRefText').value; // Gets filename
 
-            if (!amount || !desc) { alert("Please fill details"); return; }
+            if(!amt || !desc) { alert("Please fill amount and description"); return; }
 
-            const entry = {
+            ledger.push({
                 date: new Date().toISOString().split('T')[0],
                 type: type,
                 desc: desc,
-                amount: parseFloat(amount),
-                ref: ref
-            };
-
-            ledger.push(entry);
+                amount: parseFloat(amt),
+                ref: ref || 'Manual Entry'
+            });
+            
             save();
+            // Reset Inputs
+            document.getElementById('inDesc').value = '';
+            document.getElementById('inAmt').value = '';
+            document.getElementById('inRefText').value = '';
+            document.getElementById('fileLabel').innerText = '📎 Click to attach receipt (Image/PDF)';
         }
 
-        function deleteItem(realIndex) {
-            if(confirm('Delete this entry?')) {
-                ledger.splice(realIndex, 1);
+        function deleteItem(index) {
+            if(confirm('Delete this line?')) {
+                ledger.splice(index, 1);
                 save();
             }
         }
 
         function save() {
-            localStorage.setItem('fluxo_ledger', JSON.stringify(ledger));
+            localStorage.setItem('shadow_ledger_final', JSON.stringify(ledger));
             render();
-            // Clear inputs
-            document.getElementById('amount').value = '';
-            document.getElementById('desc').value = '';
-            document.getElementById('ref').value = '';
         }
 
         function clearData() {
-            if(confirm('Reset all data? This cannot be undone.')) {
-                localStorage.removeItem('fluxo_ledger');
+            if(confirm('Wipe all data and start fresh?')) {
+                localStorage.removeItem('shadow_ledger_final');
                 ledger = [];
                 render();
             }
         }
 
-        function copyEmail() {
-            let totalCol = 0;
-            let totalDep = 0;
-            ledger.forEach(i => {
-                if(i.type === 'COLLECT') totalCol += parseFloat(i.amount);
-                if(i.type === 'DEPOSIT') totalDep += parseFloat(i.amount);
-            });
-            const net = totalCol - totalDep;
+        // --- VIEW SWITCHER ---
+        function switchView(viewName) {
+            const dash = document.getElementById('dashboard-view');
+            const rep = document.getElementById('report-view');
             
-            const text = `Settlement Status:\nTotal Collections: AED ${totalCol.toFixed(2)}\nTotal Deposits: AED ${totalDep.toFixed(2)}\nNet Outstanding: AED ${net.toFixed(2)}\n\nPlease update ERP.`;
-            
-            navigator.clipboard.writeText(text);
-            alert("Report copied to clipboard!");
+            if(viewName === 'report') {
+                dash.style.display = 'none';
+                rep.style.display = 'block';
+                document.body.style.backgroundColor = 'white'; // Marriott Style
+            } else {
+                dash.style.display = 'block';
+                rep.style.display = 'none';
+                document.body.style.backgroundColor = '#1a1a1a'; // Dark Mode
+            }
         }
 
-        // Initial Render
+        // --- HELPER FUNCTIONS ---
+        function handleFileSelect(input) {
+            if (input.files && input.files[0]) {
+                const filename = input.files[0].name;
+                document.getElementById('inRefText').value = filename; // Store filename as Ref
+                document.getElementById('fileLabel').innerText = "✅ Attached: " + filename;
+                document.getElementById('fileLabel').style.color = "#10b981";
+                document.getElementById('fileLabel').style.borderColor = "#10b981";
+            }
+        }
+
+        function getTypeIcon(type) {
+            if(type === 'COLLECT') return '📥';
+            if(type === 'DEPOSIT') return '📤';
+            return '💰';
+        }
+
+        function toTitleCase(str) {
+            return str.charAt(0) + str.slice(1).toLowerCase();
+        }
+        
+        function truncate(str, n){
+            return (str.length > n) ? str.substr(0, n-1) + '&hellip;' : str;
+        }
+
+        // Initialize
         render();
     </script>
 </body>
