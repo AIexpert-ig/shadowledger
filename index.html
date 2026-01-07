@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fluxo Cash Control</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: #f4f4f9; padding: 20px; max-width: 600px; margin: 0 auto; }
+        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        h1 { font-size: 20px; margin-bottom: 10px; color: #333; }
+        label { display: block; margin-top: 10px; font-size: 12px; color: #666; font-weight: 600; }
+        input, select { width: 100%; padding: 12px; margin-top: 5px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
+        button { width: 100%; padding: 14px; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 20px; }
+        .btn-green { background: #10b981; color: white; }
+        .btn-blue { background: #3b82f6; color: white; }
+        .btn-gray { background: #6b7280; color: white; margin-top: 10px; }
+        .status-box { padding: 15px; border-radius: 8px; text-align: center; font-weight: bold; margin-top: 10px; }
+        .positive { background: #fee2e2; color: #b91c1c; } /* You Owe Company */
+        .negative { background: #d1fae5; color: #047857; } /* Company Owes You */
+        .zero { background: #f3f4f6; color: #374151; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 12px; }
+        th, td { text-align: left; padding: 8px; border-bottom: 1px solid #eee; }
+        .delete-btn { color: red; cursor: pointer; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <h1>📊 Fluxo Live Position</h1>
+        <div id="statusDisplay" class="status-box zero">Loading...</div>
+        <div style="display: flex; justify-content: space-between; margin-top: 15px; font-size: 14px;">
+            <div>📥 Collected: <span id="totalCol">0.00</span></div>
+            <div>📤 Deposited: <span id="totalDep">0.00</span></div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h1>📝 New Transaction</h1>
+        <label>Type</label>
+        <select id="type">
+            <option value="COLLECT">📥 Collection (Cash In)</option>
+            <option value="DEPOSIT">📤 Deposit (Cash Out)</option>
+            <option value="COMMISSION">💰 Commission (Offset)</option>
+        </select>
+
+        <label>Description / Client Name</label>
+        <input type="text" id="desc" placeholder="e.g. Safari - Jogi">
+
+        <label>Amount (AED)</label>
+        <input type="number" id="amount" placeholder="0.00" step="0.01">
+
+        <label>Reference (Bill # / Receipt)</label>
+        <input type="text" id="ref" placeholder="Reference ID">
+
+        <button class="btn-green" onclick="addTransaction()">Save Transaction</button>
+        <button class="btn-blue" onclick="copyEmail()">📧 Copy Report for Finance</button>
+    </div>
+
+    <div class="card">
+        <h1>📜 History <button style="width:auto; padding:5px 10px; font-size:12px; float:right;" class="btn-gray" onclick="clearData()">Reset</button></h1>
+        <table id="historyTable">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Type</th>
+                    <th>Amt</th>
+                    <th>Ref</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody id="tableBody"></tbody>
+        </table>
+    </div>
+
+    <script>
+        // --- LOGIC ENGINE ---
+        let ledger = JSON.parse(localStorage.getItem('fluxo_ledger')) || [];
+
+        function render() {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+            
+            let totalCol = 0;
+            let totalDep = 0;
+            let totalCom = 0;
+
+            // Sort by new first
+            ledger.slice().reverse().forEach((item, index) => {
+                // Calculate Totals
+                const amt = parseFloat(item.amount);
+                if (item.type === 'COLLECT') totalCol += amt;
+                if (item.type === 'DEPOSIT') totalDep += amt;
+                if (item.type === 'COMMISSION') totalCom += amt;
+
+                // Render Row
+                const row = `<tr>
+                    <td>${item.date}</td>
+                    <td>${item.type === 'COLLECT' ? '📥' : (item.type === 'DEPOSIT' ? '📤' : '💰')}</td>
+                    <td>${amt.toFixed(2)}</td>
+                    <td>${item.ref}</td>
+                    <td><span class="delete-btn" onclick="deleteItem(${ledger.length - 1 - index})">x</span></td>
+                </tr>`;
+                tbody.innerHTML += row;
+            });
+
+            // Update Dashboard
+            const net = totalCol - totalDep - totalCom;
+            document.getElementById('totalCol').innerText = totalCol.toFixed(2);
+            document.getElementById('totalDep').innerText = totalDep.toFixed(2);
+            
+            const statusDiv = document.getElementById('statusDisplay');
+            if (net > 0) {
+                statusDiv.className = 'status-box positive';
+                statusDiv.innerHTML = `🔴 YOU OWE COMPANY: AED ${net.toFixed(2)}`;
+            } else if (net < 0) {
+                statusDiv.className = 'status-box negative';
+                statusDiv.innerHTML = `🟢 COMPANY OWES YOU: AED ${Math.abs(net).toFixed(2)}`;
+            } else {
+                statusDiv.className = 'status-box zero';
+                statusDiv.innerHTML = `⚪ ALL SETTLED`;
+            }
+        }
+
+        function addTransaction() {
+            const type = document.getElementById('type').value;
+            const desc = document.getElementById('desc').value;
+            const amount = document.getElementById('amount').value;
+            const ref = document.getElementById('ref').value;
+
+            if (!amount || !desc) { alert("Please fill details"); return; }
+
+            const entry = {
+                date: new Date().toISOString().split('T')[0],
+                type: type,
+                desc: desc,
+                amount: parseFloat(amount),
+                ref: ref
+            };
+
+            ledger.push(entry);
+            save();
+        }
+
+        function deleteItem(realIndex) {
+            if(confirm('Delete this entry?')) {
+                ledger.splice(realIndex, 1);
+                save();
+            }
+        }
+
+        function save() {
+            localStorage.setItem('fluxo_ledger', JSON.stringify(ledger));
+            render();
+            // Clear inputs
+            document.getElementById('amount').value = '';
+            document.getElementById('desc').value = '';
+            document.getElementById('ref').value = '';
+        }
+
+        function clearData() {
+            if(confirm('Reset all data? This cannot be undone.')) {
+                localStorage.removeItem('fluxo_ledger');
+                ledger = [];
+                render();
+            }
+        }
+
+        function copyEmail() {
+            let totalCol = 0;
+            let totalDep = 0;
+            ledger.forEach(i => {
+                if(i.type === 'COLLECT') totalCol += parseFloat(i.amount);
+                if(i.type === 'DEPOSIT') totalDep += parseFloat(i.amount);
+            });
+            const net = totalCol - totalDep;
+            
+            const text = `Settlement Status:\nTotal Collections: AED ${totalCol.toFixed(2)}\nTotal Deposits: AED ${totalDep.toFixed(2)}\nNet Outstanding: AED ${net.toFixed(2)}\n\nPlease update ERP.`;
+            
+            navigator.clipboard.writeText(text);
+            alert("Report copied to clipboard!");
+        }
+
+        // Initial Render
+        render();
+    </script>
+</body>
+</html>
