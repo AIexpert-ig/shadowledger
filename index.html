@@ -12,6 +12,7 @@
             --text-light: #e5e5e5;
             --accent-green: #10b981;
             --accent-red: #ef4444;
+            --accent-orange: #f59e0b; /* For Hotel Transfers */
             /* Marriott Colors */
             --m-blue: #303f9f;
             --m-pink: #d81b60;
@@ -65,8 +66,7 @@
         }
         .btn-green { background: var(--accent-green); color: white; }
         .btn-blue { background: #3b82f6; color: white; }
-        .btn-outline { background: transparent; border: 1px solid #555; color: #ccc; margin-top: 10px; }
-
+        
         /* Status Box */
         .status-box { padding: 20px; border-radius: 8px; text-align: center; font-weight: bold; margin-top: 10px; font-size: 18px; }
         .status-pos { background: #7f1d1d; color: #fca5a5; border: 1px solid #991b1b; } /* Owe Company */
@@ -124,17 +124,18 @@
             <div id="statusDisplay" class="status-box status-zero">Loading...</div>
             <div style="display: flex; justify-content: space-between; margin-top: 15px; font-size: 13px; color: #aaa;">
                 <div>📥 Collected: <span id="dashCol" style="color:white">0.00</span></div>
-                <div>📤 Deposited: <span id="dashDep" style="color:white">0.00</span></div>
+                <div>📤 Transferred/Deposited: <span id="dashDep" style="color:white">0.00</span></div>
             </div>
         </div>
 
         <div class="card">
             <h1>📝 Add Transaction</h1>
             
-            <label>Type</label>
+            <label>Transaction Type</label>
             <select id="inType">
                 <option value="COLLECT">📥 Collection (Cash In)</option>
-                <option value="DEPOSIT">📤 Deposit (Cash Out)</option>
+                <option value="DEPOSIT">📤 Bank Deposit (Cash Out)</option>
+                <option value="HOTEL">🏨 Transfer to Hotel (Internal)</option>
                 <option value="COMMISSION">💰 Commission (Offset)</option>
             </select>
 
@@ -180,7 +181,7 @@
             </div>
             <div class="meta-item">
                 <h3>Employee ID</h3><p>Travel Desk</p>
-                <h3 style="margin-top:15px;">Purpose</h3><p>Cash Flow</p>
+                <h3 style="margin-top:15px;">Purpose</h3><p>Cash Flow Reconciliation</p>
             </div>
             <div class="meta-item">
                 <h3>Department</h3><p>Travel Desk</p>
@@ -191,8 +192,8 @@
             <thead>
                 <tr>
                     <th style="width:15%">Date</th>
-                    <th style="width:15%">Category</th>
-                    <th style="width:35%">Description</th>
+                    <th style="width:20%">Category</th>
+                    <th style="width:30%">Description</th>
                     <th style="width:20%">Reference / Receipt</th>
                     <th class="col-amt">Amount</th>
                 </tr>
@@ -205,25 +206,24 @@
 
     <script>
         // --- LOGIC ENGINE ---
-        let ledger = JSON.parse(localStorage.getItem('shadow_ledger_final')) || [];
+        // Using 'shadow_ledger_v4' to avoid conflicts with previous versions
+        let ledger = JSON.parse(localStorage.getItem('shadow_ledger_v4')) || [];
 
         function render() {
             // Render Dashboard Table
             const dashBody = document.getElementById('dashBody');
             dashBody.innerHTML = '';
             
-            // Sort Descending for Dashboard (Newest First)
             const sortedDash = ledger.slice().reverse();
             
-            let totalCol = 0, totalDep = 0, totalCom = 0;
+            let totalCol = 0, totalOut = 0;
 
             sortedDash.forEach((item, index) => {
                 const amt = parseFloat(item.amount);
+                // Logic: Collections add to Liability. Deposits, Hotel Transfers, Commissions subtract.
                 if(item.type === 'COLLECT') totalCol += amt;
-                if(item.type === 'DEPOSIT') totalDep += amt;
-                if(item.type === 'COMMISSION') totalCom += amt;
+                else totalOut += amt; // Everything else reduces liability
 
-                // Dashboard Row
                 dashBody.innerHTML += `
                     <tr>
                         <td>${item.date.substring(5)}</td>
@@ -236,15 +236,15 @@
             });
 
             // Update Dashboard Stats
-            const net = totalCol - totalDep - totalCom;
+            const net = totalCol - totalOut;
             document.getElementById('dashCol').innerText = totalCol.toFixed(2);
-            document.getElementById('dashDep').innerText = totalDep.toFixed(2);
+            document.getElementById('dashDep').innerText = totalOut.toFixed(2);
             
             const statusBox = document.getElementById('statusDisplay');
-            if(net > 0) {
+            if(net > 0.01) {
                 statusBox.className = 'status-box status-pos';
                 statusBox.innerHTML = `PAYABLE TO COMPANY<br>AED ${net.toFixed(2)}`;
-            } else if (net < 0) {
+            } else if (net < -0.01) {
                 statusBox.className = 'status-box status-neg';
                 statusBox.innerHTML = `COMPANY OWES YOU<br>AED ${Math.abs(net).toFixed(2)}`;
             } else {
@@ -252,11 +252,10 @@
                 statusBox.innerHTML = `ALL SETTLED`;
             }
 
-            // Render Report Table (Marriott Style)
+            // Render Report Table
             const reportBody = document.getElementById('reportBody');
             reportBody.innerHTML = '';
             
-            // Sort Ascending for Report (Oldest First)
             const sortedReport = ledger.slice().sort((a,b) => new Date(a.date) - new Date(b.date));
             
             if(sortedReport.length > 0) {
@@ -269,13 +268,12 @@
             sortedReport.forEach(item => {
                 const amt = parseFloat(item.amount);
                 if(item.type === 'COLLECT') reportNet += amt;
-                if(item.type === 'DEPOSIT') reportNet -= amt;
-                if(item.type === 'COMMISSION') reportNet -= amt;
+                else reportNet -= amt;
 
                 reportBody.innerHTML += `
                     <tr>
                         <td>${new Date(item.date).toLocaleDateString('en-US', {month:'short', day:'numeric'})}</td>
-                        <td><strong>${toTitleCase(item.type)}</strong></td>
+                        <td><strong>${getTypeLabel(item.type)}</strong></td>
                         <td>${item.desc}</td>
                         <td style="color:#666; font-style:italic;">${item.ref || '-'}</td>
                         <td class="col-amt">dh${amt.toLocaleString('en-US', {minimumFractionDigits: 2})}</td>
@@ -283,11 +281,10 @@
                 `;
             });
 
-            // Report Total Logic
             const reportTotalEl = document.getElementById('reportTotal');
             reportTotalEl.innerText = `dh${Math.abs(reportNet).toLocaleString('en-US', {minimumFractionDigits: 2})}`;
-            if(reportNet > 0) { reportTotalEl.style.color = '#d81b60'; } // Pink (Payable)
-            else if (reportNet < 0) { reportTotalEl.style.color = '#064e3b'; } // Green (Asset)
+            if(reportNet > 0.01) { reportTotalEl.style.color = '#d81b60'; } // Pink
+            else if (reportNet < -0.01) { reportTotalEl.style.color = '#064e3b'; } // Green
             else { reportTotalEl.style.color = '#ccc'; }
         }
 
@@ -296,7 +293,7 @@
             const type = document.getElementById('inType').value;
             const desc = document.getElementById('inDesc').value;
             const amt = document.getElementById('inAmt').value;
-            const ref = document.getElementById('inRefText').value; // Gets filename
+            const ref = document.getElementById('inRefText').value;
 
             if(!amt || !desc) { alert("Please fill amount and description"); return; }
 
@@ -324,13 +321,13 @@
         }
 
         function save() {
-            localStorage.setItem('shadow_ledger_final', JSON.stringify(ledger));
+            localStorage.setItem('shadow_ledger_v4', JSON.stringify(ledger));
             render();
         }
 
         function clearData() {
             if(confirm('Wipe all data and start fresh?')) {
-                localStorage.removeItem('shadow_ledger_final');
+                localStorage.removeItem('shadow_ledger_v4');
                 ledger = [];
                 render();
             }
@@ -344,19 +341,19 @@
             if(viewName === 'report') {
                 dash.style.display = 'none';
                 rep.style.display = 'block';
-                document.body.style.backgroundColor = 'white'; // Marriott Style
+                document.body.style.backgroundColor = 'white'; 
             } else {
                 dash.style.display = 'block';
                 rep.style.display = 'none';
-                document.body.style.backgroundColor = '#1a1a1a'; // Dark Mode
+                document.body.style.backgroundColor = '#1a1a1a'; 
             }
         }
 
-        // --- HELPER FUNCTIONS ---
+        // --- HELPERS ---
         function handleFileSelect(input) {
             if (input.files && input.files[0]) {
                 const filename = input.files[0].name;
-                document.getElementById('inRefText').value = filename; // Store filename as Ref
+                document.getElementById('inRefText').value = filename;
                 document.getElementById('fileLabel').innerText = "✅ Attached: " + filename;
                 document.getElementById('fileLabel').style.color = "#10b981";
                 document.getElementById('fileLabel').style.borderColor = "#10b981";
@@ -366,18 +363,22 @@
         function getTypeIcon(type) {
             if(type === 'COLLECT') return '📥';
             if(type === 'DEPOSIT') return '📤';
+            if(type === 'HOTEL') return '🏨';
             return '💰';
         }
 
-        function toTitleCase(str) {
-            return str.charAt(0) + str.slice(1).toLowerCase();
+        function getTypeLabel(type) {
+            if(type === 'COLLECT') return 'Collection';
+            if(type === 'DEPOSIT') return 'Deposit';
+            if(type === 'HOTEL') return 'Internal Transfer - Hotel';
+            if(type === 'COMMISSION') return 'Commission Offset';
+            return type;
         }
         
         function truncate(str, n){
             return (str.length > n) ? str.substr(0, n-1) + '&hellip;' : str;
         }
 
-        // Initialize
         render();
     </script>
 </body>
