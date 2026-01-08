@@ -382,172 +382,207 @@
     </div>
 
     <script>
-       // --- LOGIC ENGINE ---
-let ledger = JSON.parse(localStorage.getItem('shadow_ledger_v4')) || [];
-
-function render() {
-    // Render Dashboard Table
-    const dashBody = document.getElementById('dashBody');
-    dashBody.innerHTML = '';
-
-    const sortedDash = ledger.slice().reverse();
-    let totalCol = 0, totalOut = 0;
-
-    sortedDash.forEach((item, index) => {
-        const amt = parseFloat(item.amount);
-        if(item.type === 'COLLECT') totalCol += amt;
-        else totalOut += amt;
-
-        dashBody.innerHTML += `
-            <tr>
-                <td>${item.date.substring(5)}</td>
-                <td>${getTypeIcon(item.type)}</td>
-                <td>${amt.toFixed(2)}</td>
-                <td class="fs-xs text-secondary">${truncate(item.ref, 10)}</td>
-                <td class="cursor-pointer text-error" onclick="deleteItem(${ledger.length - 1 - index})">×</td>
-            </tr>
-        `;
-    });
-
-    // Update Status Box
-    const net = totalCol - totalOut;
-    const statusBox = document.getElementById('statusDisplay');
-    statusBox.className = 'status-box'; // reset classes
-    
-    if (net > 0) {
-        statusBox.textContent = `You Owe Company: dh${net.toFixed(2)}`;
-        statusBox.classList.add('status-pos');
-    } else if (net < 0) {
-        statusBox.textContent = `Company Owes You: dh${(-net).toFixed(2)}`;
-        statusBox.classList.add('status-neg');
-    } else {
-        statusBox.textContent = 'Settled!';
-        statusBox.classList.add('status-zero');
-    }
-
-    document.getElementById('dashCol').innerText = totalCol.toFixed(2);
-    document.getElementById('dashDep').innerText = totalOut.toFixed(2);
-}
-
-// *** NEW FUNCTION: Actually renders the Report View ***
-function renderReport() {
-    const reportBody = document.getElementById('reportBody');
-    reportBody.innerHTML = ''; // Clear previous lines
-    
-    let reportTotal = 0;
-
-    // We usually want reports chronological (Oldest -> Newest), unlike the dashboard
-    ledger.forEach(item => {
-        const amt = parseFloat(item.amount);
+        // --- LOGIC ENGINE ---
+        // Load existing data or start fresh
+        let ledger = JSON.parse(localStorage.getItem('shadow_ledger_v4')) || [];
         
-        // Calculate running total logic specifically for the report
-        // If it's a COLLECTION, it adds to debt. If DEPOSIT, it reduces debt.
-        if(item.type === 'COLLECT') reportTotal += amt;
-        else reportTotal -= amt;
+        // GLOBAL VARIABLE: Temporarily holds the image data string
+        let currentFileBase64 = null;
 
-        reportBody.innerHTML += `
-            <tr>
-                <td>${item.date}</td>
-                <td>${item.type}</td>
-                <td>${item.description}</td>
-                <td>${item.ref || '-'}</td>
-                <td class="col-amt">${amt.toFixed(2)}</td>
-            </tr>
-        `;
-    });
+        // 1. DASHBOARD RENDERER
+        function render() {
+            const dashBody = document.getElementById('dashBody');
+            dashBody.innerHTML = '';
 
-    // Update the Big Total at the bottom
-    const totalEl = document.getElementById('reportTotal');
-    totalEl.innerText = `dh${reportTotal.toFixed(2)}`;
-    
-    // Optional: Color code the final report total
-    if(reportTotal > 0) totalEl.style.color = "#d81b60"; // Pink/Red (Owe money)
-    else totalEl.style.color = "#10b981"; // Green (Clean/Owed)
-}
+            const sortedDash = ledger.slice().reverse();
+            let totalCol = 0, totalOut = 0;
 
-function getTypeIcon(type) {
-    switch(type) {
-        case "COLLECT": return "📥";
-        case "DEPOSIT": return "📤";
-        case "HOTEL": return "🏨";
-        case "COMMISSION": return "💰";
-    }
-    return type;
-}
+            sortedDash.forEach((item, index) => {
+                const amt = parseFloat(item.amount);
+                if(item.type === 'COLLECT') totalCol += amt;
+                else totalOut += amt;
 
-function addTransaction() {
-    const type = document.getElementById('inType').value;
-    const desc = document.getElementById('inDesc').value.trim();
-    const amt = parseFloat(document.getElementById('inAmt').value);
-    const ref = document.getElementById('inRefText').value;
+                // LOGIC: Check if an image exists for this row
+                let refContent = truncate(item.ref, 10);
+                if (item.image) {
+                    // Create a clickable link that opens the image in a new tab
+                    refContent = `<a href="${item.image}" target="_blank" style="color:var(--color-accent); text-decoration:underline;">${truncate(item.ref, 10)}</a>`;
+                }
 
-    if (!desc || isNaN(amt) || amt <= 0) {
-        alert("Please enter a valid description/amount!");
-        return;
-    }
+                // Pass the ORIGINAL index (from the end of the array) to deleteItem
+                const originalIndex = ledger.length - 1 - index;
 
-    // *** FIX: Use local time instead of UTC to fix timezone bug ***
-    // 'en-CA' outputs YYYY-MM-DD format
-    const localDate = new Date().toLocaleDateString('en-CA'); 
+                dashBody.innerHTML += `
+                    <tr>
+                        <td>${item.date.substring(5)}</td>
+                        <td>${getTypeIcon(item.type)}</td>
+                        <td>${amt.toFixed(2)}</td>
+                        <td class="fs-xs text-secondary">${refContent}</td>
+                        <td class="cursor-pointer text-error" onclick="deleteItem(${originalIndex})">×</td>
+                    </tr>
+                `;
+            });
 
-    const entry = {
-        date: localDate, 
-        type, 
-        description: desc, 
-        amount: amt, 
-        ref
-    };
-    
-    ledger.push(entry);
-    localStorage.setItem('shadow_ledger_v4', JSON.stringify(ledger));
-    
-    render(); // Update UI
-    
-    // Clear inputs
-    document.getElementById('inDesc').value = '';
-    document.getElementById('inAmt').value = '';
-    document.getElementById('inFile').value = '';
-    document.getElementById('fileLabel').textContent = "📎 Click to attach receipt (Image/PDF)";
-    document.getElementById('inRefText').value = '';
-}
+            // Update Net Status
+            const net = totalCol - totalOut;
+            const statusBox = document.getElementById('statusDisplay');
+            statusBox.className = 'status-box'; // reset
+            if (net > 0) {
+                statusBox.textContent = `You Owe Company: dh${net.toFixed(2)}`;
+                statusBox.classList.add('status-pos');
+            } else if (net < 0) {
+                statusBox.textContent = `Company Owes You: dh${(-net).toFixed(2)}`;
+                statusBox.classList.add('status-neg');
+            } else {
+                statusBox.textContent = 'Settled!';
+                statusBox.classList.add('status-zero');
+            }
 
-function truncate(s, len) {
-    if (!s) return '';
-    return (s.length > len) ? s.slice(0, len) + "..." : s;
-}
+            document.getElementById('dashCol').innerText = totalCol.toFixed(2);
+            document.getElementById('dashDep').innerText = totalOut.toFixed(2);
+        }
 
-function deleteItem(idx) {
-    if (!confirm("Delete this transaction?")) return;
-    ledger.splice(idx, 1);
-    localStorage.setItem('shadow_ledger_v4', JSON.stringify(ledger));
-    render();
-}
+        // 2. REPORT RENDERER (Official View)
+        function renderReport() {
+            const reportBody = document.getElementById('reportBody');
+            reportBody.innerHTML = '';
+            
+            let reportTotal = 0;
 
-function clearData() {
-    if (!confirm("Are you sure you want to reset ALL transactions?")) return;
-    ledger = [];
-    localStorage.removeItem('shadow_ledger_v4');
-    render();
-}
+            // Reports are chronological (Oldest -> Newest)
+            ledger.forEach(item => {
+                const amt = parseFloat(item.amount);
+                
+                // Logic: Collections increase debt, Deposits decrease debt
+                if(item.type === 'COLLECT') reportTotal += amt;
+                else reportTotal -= amt;
 
-function handleFileSelect(input) {
-    const file = input.files[0];
-    if (!file) return;
-    document.getElementById('fileLabel').textContent = file.name || "Attached!";
-    document.getElementById('inRefText').value = file.name || "";
-}
+                // Logic: Link for report view
+                let refContent = item.ref || '-';
+                if (item.image) {
+                    refContent = `<a href="${item.image}" target="_blank" style="color:var(--m-blue); text-decoration:underline;">View Receipt</a>`;
+                }
 
-function switchView(view) {
-    if (view === 'report') {
-        document.getElementById('dashboard-view').style.display = 'none';
-        document.getElementById('report-view').style.display = 'block';
-        renderReport(); // *** Call the NEW render function ***
-    } else {
-        document.getElementById('report-view').style.display = 'none';
-        document.getElementById('dashboard-view').style.display = 'block';
+                reportBody.innerHTML += `
+                    <tr>
+                        <td>${item.date}</td>
+                        <td>${item.type}</td>
+                        <td>${item.description}</td>
+                        <td>${refContent}</td>
+                        <td class="col-amt">${amt.toFixed(2)}</td>
+                    </tr>
+                `;
+            });
+
+            const totalEl = document.getElementById('reportTotal');
+            totalEl.innerText = `dh${reportTotal.toFixed(2)}`;
+            if(reportTotal > 0) totalEl.style.color = "#d81b60"; // Pink (Debt)
+            else totalEl.style.color = "#10b981"; // Green (Clean)
+        }
+
+        // 3. UTILITIES
+        function getTypeIcon(type) {
+            switch(type) {
+                case "COLLECT": return "📥";
+                case "DEPOSIT": return "📤";
+                case "HOTEL": return "🏨";
+                case "COMMISSION": return "💰";
+            }
+            return type;
+        }
+
+        function truncate(s, len) {
+            if (!s) return '';
+            return (s.length > len) ? s.slice(0, len) + "..." : s;
+        }
+
+        // 4. CORE ACTIONS
+        function addTransaction() {
+            const type = document.getElementById('inType').value;
+            const desc = document.getElementById('inDesc').value.trim();
+            const amt = parseFloat(document.getElementById('inAmt').value);
+            const refName = document.getElementById('inRefText').value;
+
+            if (!desc || isNaN(amt) || amt <= 0) {
+                alert("Please enter a valid description/amount!");
+                return;
+            }
+
+            // Fix: Use local date format (YYYY-MM-DD)
+            const localDate = new Date().toLocaleDateString('en-CA');
+
+            const entry = {
+                date: localDate,
+                type, 
+                description: desc, 
+                amount: amt, 
+                ref: refName,             // The filename text
+                image: currentFileBase64  // The actual image data (Base64 string)
+            };
+            
+            ledger.push(entry);
+            localStorage.setItem('shadow_ledger_v4', JSON.stringify(ledger));
+            
+            render();
+            
+            // Clear Form
+            document.getElementById('inDesc').value = '';
+            document.getElementById('inAmt').value = '';
+            document.getElementById('inFile').value = '';
+            document.getElementById('fileLabel').textContent = "📎 Click to attach receipt (Image/PDF)";
+            document.getElementById('inRefText').value = '';
+            currentFileBase64 = null; // Important reset
+        }
+
+        function handleFileSelect(input) {
+            const file = input.files[0];
+            if (!file) return;
+
+            // Safety: Limit file size to ~500KB
+            if (file.size > 500000) { 
+                alert("File too big! Please select an image smaller than 500KB.");
+                input.value = "";
+                return;
+            }
+
+            // Convert Image to Base64 String
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                currentFileBase64 = e.target.result; // Store the string
+                document.getElementById('fileLabel').textContent = "✅ " + file.name;
+                document.getElementById('inRefText').value = file.name;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function deleteItem(idx) {
+            if (!confirm("Delete this transaction?")) return;
+            ledger.splice(idx, 1);
+            localStorage.setItem('shadow_ledger_v4', JSON.stringify(ledger));
+            render();
+        }
+
+        function clearData() {
+            if (!confirm("Are you sure you want to reset ALL transactions?")) return;
+            ledger = [];
+            localStorage.removeItem('shadow_ledger_v4');
+            render();
+        }
+
+        function switchView(view) {
+            if (view === 'report') {
+                document.getElementById('dashboard-view').style.display = 'none';
+                document.getElementById('report-view').style.display = 'block';
+                renderReport(); // Call the specific report renderer
+            } else {
+                document.getElementById('report-view').style.display = 'none';
+                document.getElementById('dashboard-view').style.display = 'block';
+                render();
+            }
+        }
+
+        // INITIALIZE APP
         render();
-    }
-}
-
-// INITIALIZE
-render();
+    </script>
+</body>
+</html>
