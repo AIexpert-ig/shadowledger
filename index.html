@@ -3,586 +3,416 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Shadow Ledger | Marriott Report</title>
+    <meta name="description" content="Shadow Ledger - Offline First Cash Management">
+    <title>Shadow Ledger 2026</title>
     <style>
-        /* --- DESIGN SYSTEM VARIABLES --- */
-        :root {
-            /* Color Palette */
-            --color-bg: #16171b;
-            --color-surface: #232429;
-            --color-border: #30343b;
-            --color-card: #24252b;
-            --color-text-primary: #f4f4f5;
-            --color-text-secondary: #b3b4ba;
-            --color-accent: #10b981;   /* green */
-            --color-error: #ef4444;    /* red */
-            --color-warning: #f59e0b;  /* orange */
-            --m-blue: #303f9f;
-            --m-pink: #d81b60;
+        /* * 2026 MODERN CSS STACK 
+         * Features: OKLCH Colors, CSS Variables, Native Nesting, Container Queries
+         */
+        @layer reset, base, components, utilities;
 
-            /* Spacing scale */
-            --space-xs: 4px;
-            --space-sm: 8px;
-            --space-md: 16px;
-            --space-lg: 24px;
-            --space-xl: 40px;
-
-            /* Typography */
-            --font-main: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            --fs-xs: 12px;
-            --fs-sm: 14px;
-            --fs-md: 16px;
-            --fs-lg: 20px;
-            --fs-xl: 32px;
-            --fw-light: 400;
-            --fw-bold: 700;
-            --fw-bolder: 800;
-            --letter-tight: -0.02em;
+        @layer reset {
+            *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+            body { line-height: 1.6; -webkit-font-smoothing: antialiased; }
+            input, button, select { font: inherit; }
         }
 
-        /* --- DESIGN UTILITIES --- */
-        .float-left { float: left !important; }
-        .float-right { float: right !important; }
-        .flex-between { display: flex !important; justify-content: space-between !important; align-items: center !important; }
-        .text-secondary { color: var(--color-text-secondary) !important; }
-        .text-primary { color: var(--color-text-primary) !important; }
-        .fs-xs { font-size: var(--fs-xs) !important; }
-        .fs-sm { font-size: var(--fs-sm) !important; }
-        .m-0 { margin: 0 !important; }
-        .mt-md { margin-top: var(--space-md) !important; }
-        .mb-lg { margin-bottom: var(--space-lg) !important; }
-        .btn-inline { width: auto !important; padding: var(--space-xs) var(--space-md) !important; font-size: var(--fs-xs) !important; }
-        .table-note { color: #666 !important; font-style: italic !important; }
-        .cursor-pointer { cursor: pointer !important; }
-        .bold { font-weight: var(--fw-bold) !important; }
-        .clearfix::after { content:""; display: table; clear: both; }
-        .text-error { color: var(--color-error) !important; }
+        @layer base {
+            :root {
+                /* OKLCH Color Gamut for 2026 Vibrancy */
+                --brand-hue: 245; 
+                --color-bg: oklch(18% 0.01 var(--brand-hue));
+                --color-surface: oklch(25% 0.02 var(--brand-hue));
+                --color-surface-glass: oklch(25% 0.02 var(--brand-hue) / 0.7);
+                --color-text-primary: oklch(98% 0 0);
+                --color-text-secondary: oklch(75% 0 0);
+                
+                --color-accent: oklch(65% 0.2 var(--brand-hue)); /* Electric Blue */
+                --color-success: oklch(65% 0.18 145); /* Neon Green */
+                --color-danger: oklch(60% 0.2 25);   /* Alert Red */
+                
+                --radius-sm: 8px;
+                --radius-md: 16px;
+                --radius-lg: 24px;
+                
+                --shadow-glass: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+                --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+            }
 
-        body {
-            font-family: var(--font-main);
-            background: var(--color-bg);
-            color: var(--color-text-primary);
-            margin: 0;
-            padding: var(--space-lg);
-            font-size: var(--fs-md);
-            transition: background 0.3s;
-        }
-
-        #dashboard-view,
-        #report-view {
-            max-width: 650px;
-            margin: 0 auto;
+            body {
+                font-family: var(--font-sans);
+                background-color: var(--color-bg);
+                color: var(--color-text-primary);
+                padding: 2rem;
+                /* Subtle grain texture overlay */
+                background-image: radial-gradient(circle at top left, rgba(255,255,255,0.05), transparent 40%);
+            }
         }
 
-        .card {
-            background: var(--color-card);
-            padding: var(--space-lg);
-            border-radius: var(--space-md);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.10);
-            margin-bottom: var(--space-lg);
-            border: 1px solid var(--color-border);
+        @layer components {
+            .app-container {
+                max-width: 800px;
+                margin: 0 auto;
+                display: flex;
+                flex-direction: column;
+                gap: 2rem;
+            }
+
+            /* Glassmorphism Card */
+            .glass-card {
+                background: var(--color-surface-glass);
+                backdrop-filter: blur(12px);
+                -webkit-backdrop-filter: blur(12px);
+                border: 1px solid rgba(255, 255, 255, 0.08);
+                border-radius: var(--radius-md);
+                padding: 2rem;
+                box-shadow: var(--shadow-glass);
+                transition: transform 0.2s ease;
+                
+                &:hover {
+                    border-color: rgba(255, 255, 255, 0.15);
+                }
+            }
+
+            .header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 1rem;
+                
+                h1 { font-size: 2rem; font-weight: 800; letter-spacing: -0.05em; }
+            }
+
+            /* Modern Inputs */
+            .input-group {
+                display: grid;
+                gap: 0.5rem;
+                margin-bottom: 1rem;
+                
+                label {
+                    font-size: 0.75rem;
+                    text-transform: uppercase;
+                    letter-spacing: 0.1em;
+                    color: var(--color-text-secondary);
+                    font-weight: 600;
+                }
+                
+                input, select {
+                    background: rgba(0,0,0,0.2);
+                    border: 1px solid rgba(255,255,255,0.1);
+                    color: white;
+                    padding: 0.75rem 1rem;
+                    border-radius: var(--radius-sm);
+                    transition: all 0.2s;
+                    
+                    &:focus {
+                        outline: none;
+                        border-color: var(--color-accent);
+                        box-shadow: 0 0 0 2px rgba(100, 100, 255, 0.2);
+                    }
+                }
+            }
+
+            /* Interactive Buttons */
+            .btn {
+                width: 100%;
+                padding: 1rem;
+                border: none;
+                border-radius: var(--radius-sm);
+                font-weight: 700;
+                cursor: pointer;
+                display: flex;
+                justify-content: center;
+                gap: 0.5rem;
+                transition: transform 0.1s;
+                
+                &:active { transform: scale(0.98); }
+                
+                &.primary { background: var(--color-accent); color: white; }
+                &.secondary { background: rgba(255,255,255,0.1); color: white; }
+            }
+
+            /* Transaction List with Animation */
+            .transaction-list {
+                list-style: none;
+                display: flex;
+                flex-direction: column;
+                gap: 0.75rem;
+            }
+
+            .transaction-item {
+                display: grid;
+                grid-template-columns: auto 1fr auto auto;
+                gap: 1rem;
+                align-items: center;
+                padding: 1rem;
+                background: rgba(255,255,255,0.03);
+                border-radius: var(--radius-sm);
+                /* Entry Animation */
+                animation: slideIn 0.3s cubic-bezier(0.2, 0.9, 0.3, 1) forwards;
+                
+                .t-icon { font-size: 1.5rem; }
+                
+                .t-details {
+                    display: flex;
+                    flex-direction: column;
+                    .t-desc { font-weight: 600; }
+                    .t-meta { font-size: 0.8rem; color: var(--color-text-secondary); }
+                }
+
+                .t-amount { font-family: monospace; font-size: 1.1rem; font-weight: 700; }
+                
+                .t-delete {
+                    opacity: 0;
+                    color: var(--color-danger);
+                    cursor: pointer;
+                    transition: opacity 0.2s;
+                }
+                
+                &:hover .t-delete { opacity: 1; }
+            }
         }
 
-        h1, .report-title {
-            font-size: var(--fs-lg);
-            margin-block: 0 var(--space-md);
-            font-weight: var(--fw-bolder);
-            letter-spacing: var(--letter-tight);
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
-        label {
-            display: block;
-            margin-top: var(--space-md);
-            font-size: var(--fs-xs);
-            color: var(--color-text-secondary);
-            font-weight: var(--fw-bold);
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
+        /* Responsive */
+        @media (max-width: 600px) {
+            body { padding: 1rem; }
+            .header h1 { font-size: 1.5rem; }
         }
 
-        input, select {
-            width: 100%;
-            padding: var(--space-sm) var(--space-md);
-            margin-top: var(--space-xs);
-            background: var(--color-surface);
-            border: 1px solid var(--color-border);
-            color: var(--color-text-primary);
-            border-radius: var(--space-sm);
-            box-sizing: border-box;
-            font-size: var(--fs-md);
-            font-family: inherit;
-            margin-bottom: var(--space-sm);
-            transition: border .2s;
-        }
-        input:focus, select:focus {
-            border-color: var(--color-accent);
-            outline: none;
-        }
-
-        /* File upload */
-        .file-upload-wrapper {
-            margin-top: var(--space-xs);
-            position: relative;
-        }
-        .file-upload-wrapper input[type="file"] {
-            position: absolute;
-            left: 0; right: 0; top: 0; bottom: 0;
-            opacity: 0; cursor: pointer; width: 100%;
-        }
-        .file-custom-btn {
-            display: block;
-            width: 100%;
-            padding: var(--space-sm);
-            background: var(--color-surface);
-            border: 1px dashed var(--color-border);
-            text-align: center;
-            border-radius: var(--space-sm);
-            color: var(--color-text-secondary);
-            font-size: var(--fs-sm);
-            cursor: pointer;
-        }
-        .file-custom-btn:hover {
-            border-color: var(--color-accent);
-            color: var(--color-accent);
-        }
-
-        button {
-            width: 100%;
-            padding: var(--space-md) 0;
-            border: none;
-            border-radius: var(--space-sm);
-            font-size: var(--fs-md);
-            font-weight: var(--fw-bold);
-            margin-top: var(--space-md);
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-        .btn-green { background: var(--color-accent); color: #fff; }
-        .btn-green:hover { background: #059669; }
-        .btn-blue { background: #3b82f6; color: #fff; }
-        .btn-blue:hover { background: #2563eb; }
-
-        /* Status Box */
-        .status-box {
-            padding: var(--space-md);
-            border-radius: var(--space-sm);
-            text-align: center;
-            font-weight: var(--fw-bold);
-            margin-top: var(--space-sm);
-            font-size: var(--fs-lg);
-        }
-        .status-pos {
-            background: #7f1d1d;
-            color: #fca5a5;
-            border: 1px solid #991b1b;
-        }
-        .status-neg {
-            background: #064e3b;
-            color: #6ee7b7;
-            border: 1px solid #065f46;
-        }
-        .status-zero {
-            background: var(--color-surface);
-            color: #ccc;
-        }
-
-        /* Dashboard Table */
-        .dash-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: var(--space-md);
-            font-size: var(--fs-sm);
-        }
-        .dash-table th {
-            text-align: left;
-            color: var(--color-text-secondary);
-            border-bottom: 1px solid var(--color-border);
-            padding-bottom: var(--space-xs);
-            font-weight: var(--fw-bold);
-        }
-        .dash-table td {
-            padding: var(--space-xs) 0;
-            border-bottom: 1px solid var(--color-border);
-        }
-
-        /* --- REPORT STYLES --- */
-        #report-view {
-            display: none;
-            max-width: 950px;
-            margin: 0 auto;
-            background: #fff;
-            padding: var(--space-xl);
-            color: #222;
-        }
-        .report-header {
-            color: var(--m-blue);
-            font-size: var(--fs-sm);
-            margin-bottom: var(--space-xs);
-            font-weight: var(--fw-bold);
-        }
-        .report-title {
-            color: var(--m-blue);
-            font-size: var(--fs-xl);
-            font-weight: var(--fw-bolder);
-            margin: 0;
-            letter-spacing: -0.04em;
-        }
-        .report-range {
-            color: var(--m-pink);
-            font-weight: var(--fw-bold);
-            font-size: var(--fs-sm);
-            margin-top: var(--space-xs);
-            margin-bottom: var(--space-xl);
-        }
-        .meta-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: var(--space-lg);
-            margin-bottom: var(--space-xl);
-        }
-        .meta-item h3 {
-            font-size: var(--fs-xs);
-            font-weight: var(--fw-bold);
-            margin: 0 0 var(--space-xs) 0;
-            color: #222;
-        }
-        .meta-item p {
-            font-size: var(--fs-sm);
-            color: #666;
-            margin: 0;
-        }
-        .report-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: var(--space-lg);
-        }
-        .report-table th {
-            text-align: left;
-            color: var(--m-blue);
-            font-weight: var(--fw-bold);
-            font-size: var(--fs-sm);
-            padding: var(--space-xs) 0;
-            border-bottom: 1px solid #eee;
-        }
-        .report-table td {
-            padding: var(--space-sm) 0;
-            font-size: var(--fs-sm);
-            color: #444;
-            border-bottom: 1px solid #f2f2f2;
-        }
-        .report-table tr:nth-child(even) {
-            background-color: #f9f9f9;
-        }
-        .col-amt {
-            text-align: right;
-            font-weight: var(--fw-bold);
-            padding-right: var(--space-sm);
-        }
-        .report-total {
-            text-align: right;
-            margin-top: var(--space-md);
-            color: var(--m-pink);
-            font-size: 2rem;
-            font-weight: var(--fw-bolder);
-        }
-        /* PRINT STYLES */
+        /* Print Layer */
         @media print {
-            #dashboard-view { display: none !important; }
-            #report-view { display: block !important; padding: 0; margin: 0; }
-            .no-print { display: none !important; }
-            body { background-color: #fff; color: #222; padding: 0; }
+            body { background: white; color: black; }
+            .glass-card { box-shadow: none; border: 1px solid #ccc; backdrop-filter: none; }
+            .no-print { display: none; }
         }
     </style>
 </head>
 <body>
 
-    <div id="dashboard-view">
-        <div class="flex-between mb-lg">
-            <h1 class="m-0">🌑 Shadow Ledger</h1>
-            <button onclick="switchView('report')" class="btn-blue btn-inline">📄 View Official Report</button>
-        </div>
-
-        <div id="statusDisplay" class="status-box status-zero">Loading...</div>
-        <div class="flex-between mt-md fs-sm text-secondary">
-            <div>📥 Collected: <span id="dashCol" class="text-primary bold">0.00</span></div>
-            <div>📤 Transferred/Deposited: <span id="dashDep" class="text-primary bold">0.00</span></div>
-        </div>
-
-        <div class="card">
-            <h1>📝 Add Transaction</h1>
-            <label>Transaction Type</label>
-            <select id="inType">
-                <option value="COLLECT">📥 Collection (Cash In)</option>
-                <option value="DEPOSIT">📤 Bank Deposit (Cash Out)</option>
-                <option value="HOTEL">🏨 Transfer to Hotel (Internal)</option>
-                <option value="COMMISSION">💰 Commission (Offset)</option>
-            </select>
-
-            <label>Description</label>
-            <input type="text" id="inDesc" placeholder="e.g. Safari - Jogi">
-            <label>Amount (AED)</label>
-            <input type="number" id="inAmt" placeholder="0.00" step="0.01">
-
-            <label>Reference / Receipt Upload</label>
-            <div class="file-upload-wrapper">
-                <div class="file-custom-btn" id="fileLabel">📎 Click to attach receipt (Image/PDF)</div>
-                <input type="file" id="inFile" onchange="handleFileSelect(this)">
-            </div>
-            <input type="hidden" id="inRefText">
-
-            <button class="btn-green" onclick="addTransaction()">Save Transaction</button>
-        </div>
-
-        <div class="card">
-            <h1 class="flex-between">
-                <span>Recent Activity</span>
-                <span class="fs-xs cursor-pointer text-error" onclick="clearData()">[Reset]</span>
-            </h1>
-            <table class="dash-table">
-                <thead><tr><th>Date</th><th>Type</th><th>Amt</th><th>Ref</th><th></th></tr></thead>
-                <tbody id="dashBody"></tbody>
-            </table>
-        </div>
-    </div>
-
-    <div id="report-view">
-        <div class="no-print flex-between mb-lg">
-            <button onclick="switchView('dashboard')" class="btn-blue btn-inline" style="background:#444;">← Back to Dashboard</button>
-            <button onclick="window.print()" class="btn-blue btn-inline" style="background:var(--m-blue);">🖨️ Print / Save PDF</button>
-        </div>
-        <div class="report-header">Courtyard By Marriott, Al Barsha</div>
-        <h1 class="report-title">Cash Ledger</h1>
-        <div class="report-range" id="reportDateRange">Aug 1, 2025 - Jan 6, 2026</div>
-        <div class="meta-grid">
-            <div class="meta-item">
-                <h3>Name</h3><p>Ahmed Backer</p>
-                <h3 class="mt-md">Manager</h3><p>Ankur</p>
-            </div>
-            <div class="meta-item">
-                <h3>Employee ID</h3><p>Travel Desk</p>
-                <h3 class="mt-md">Purpose</h3><p>Cash Flow Reconciliation</p>
-            </div>
-            <div class="meta-item">
-                <h3>Department</h3><p>Travel Desk</p>
-            </div>
-        </div>
-        <table class="report-table">
-            <thead>
-                <tr>
-                    <th style="width:15%">Date</th>
-                    <th style="width:20%">Category</th>
-                    <th style="width:30%">Description</th>
-                    <th style="width:20%">Reference / Receipt</th>
-                    <th class="col-amt">Amount</th>
-                </tr>
-            </thead>
-            <tbody id="reportBody"></tbody>
-        </table>
-        <div class="report-total" id="reportTotal">dh0.00</div>
-    </div>
-
-    <script>
-        // --- LOGIC ENGINE ---
-        // Load existing data or start fresh
-        let ledger = JSON.parse(localStorage.getItem('shadow_ledger_v4')) || [];
+    <main class="app-container" id="app">
         
-        // GLOBAL VARIABLE: Temporarily holds the image data string
-        let currentFileBase64 = null;
+        <header class="header">
+            <h1>🌑 Shadow Ledger</h1>
+            <button class="btn secondary" style="width:auto" onclick="app.toggleReportMode()">
+                <span id="viewToggleBtn">📄 View Report</span>
+            </button>
+        </header>
 
-        // 1. DASHBOARD RENDERER
-        function render() {
-            const dashBody = document.getElementById('dashBody');
-            dashBody.innerHTML = '';
+        <div id="dashboardView">
+            <section class="glass-card" style="margin-bottom: 2rem;">
+                <div style="display: flex; justify-content: space-between; text-align: center;">
+                    <div>
+                        <div style="font-size: 0.8rem; text-transform: uppercase; opacity: 0.7">Collected</div>
+                        <div style="font-size: 1.5rem; color: var(--color-success)" id="displayIn">0.00</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 0.8rem; text-transform: uppercase; opacity: 0.7">Net Position</div>
+                        <div style="font-size: 2rem; font-weight: 800;" id="displayNet">0.00</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 0.8rem; text-transform: uppercase; opacity: 0.7">Deposited</div>
+                        <div style="font-size: 1.5rem; color: var(--color-danger)" id="displayOut">0.00</div>
+                    </div>
+                </div>
+            </section>
 
-            const sortedDash = ledger.slice().reverse();
-            let totalCol = 0, totalOut = 0;
+            <section class="glass-card">
+                <div class="input-group">
+                    <label>Type</label>
+                    <select id="inputType">
+                        <option value="COLLECT">📥 Collection (In)</option>
+                        <option value="DEPOSIT">📤 Deposit (Out)</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>Description</label>
+                    <input type="text" id="inputDesc" placeholder="Client Name or Reference">
+                </div>
+                <div class="input-group">
+                    <label>Amount</label>
+                    <input type="number" id="inputAmt" placeholder="0.00" step="0.01">
+                </div>
+                <div class="input-group">
+                    <label>Receipt Image</label>
+                    <input type="file" id="inputFile" accept="image/*">
+                </div>
+                <button class="btn primary" onclick="app.addTransaction()">Save Entry</button>
+            </section>
 
-            sortedDash.forEach((item, index) => {
-                const amt = parseFloat(item.amount);
-                if(item.type === 'COLLECT') totalCol += amt;
-                else totalOut += amt;
+            <h3 style="margin-top:2rem; margin-bottom:1rem; opacity:0.6;">Recent Activity</h3>
+            <ul class="transaction-list" id="txList"></ul>
+        </div>
 
-                // LOGIC: Check if an image exists for this row
-                let refContent = truncate(item.ref, 10);
-                if (item.image) {
-                    // Create a clickable link that opens the image in a new tab
-                    refContent = `<a href="${item.image}" target="_blank" style="color:var(--color-accent); text-decoration:underline;">${truncate(item.ref, 10)}</a>`;
+        <div id="reportView" class="glass-card" style="display:none">
+            <h2 style="color: black; margin-bottom: 1rem;">Official Settlement Report</h2>
+            <table style="width:100%; color:black; border-collapse: collapse;">
+                <thead>
+                    <tr style="border-bottom: 2px solid #333;">
+                        <th style="text-align:left; padding:8px;">Date</th>
+                        <th style="text-align:left;">Desc</th>
+                        <th style="text-align:right;">Amount</th>
+                    </tr>
+                </thead>
+                <tbody id="reportTableBody"></tbody>
+            </table>
+            <div style="text-align:right; color:black; font-size:1.5rem; margin-top:20px; font-weight:bold;" id="reportTotal"></div>
+        </div>
+
+    </main>
+
+    <script type="module">
+        /**
+         * 2026 ARCHITECTURE: SERVICES & REACTIVE STATE
+         */
+
+        // Service: Handles Data Persistence
+        const StorageService = {
+            KEY: 'shadow_ledger_v2026',
+            get() { return JSON.parse(localStorage.getItem(this.KEY)) || []; },
+            set(data) { localStorage.setItem(this.KEY, JSON.stringify(data)); }
+        };
+
+        // Service: Handles File encoding (Base64)
+        const FileService = {
+            toBase64: (file) => new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = error => reject(error);
+            })
+        };
+
+        // Reactive State Engine
+        const State = {
+            transactions: StorageService.get(),
+            viewMode: 'dashboard', // or 'report'
+            
+            // "Computed Properties"
+            get totals() {
+                return this.transactions.reduce((acc, t) => {
+                    const val = parseFloat(t.amount);
+                    if (t.type === 'COLLECT') acc.in += val;
+                    else acc.out += val;
+                    return acc;
+                }, { in: 0, out: 0 });
+            }
+        };
+
+        // The PROXY intercepts data changes and triggers UI updates automatically
+        const reactiveState = new Proxy(State, {
+            set(target, property, value) {
+                target[property] = value;
+                if (property === 'transactions') StorageService.set(value);
+                RenderEngine.update();
+                return true;
+            }
+        });
+
+        // View Logic
+        const RenderEngine = {
+            init() { this.update(); },
+            
+            update() {
+                // Toggle Views
+                const isDash = reactiveState.viewMode === 'dashboard';
+                document.getElementById('dashboardView').style.display = isDash ? 'block' : 'none';
+                document.getElementById('reportView').style.display = isDash ? 'none' : 'block';
+                document.getElementById('viewToggleBtn').innerText = isDash ? '📄 View Report' : '← Back to Dashboard';
+
+                if (isDash) this.renderDashboard();
+                else this.renderReport();
+            },
+
+            renderDashboard() {
+                const { in: tIn, out: tOut } = reactiveState.totals;
+                document.getElementById('displayIn').innerText = tIn.toFixed(2);
+                document.getElementById('displayOut').innerText = tOut.toFixed(2);
+                document.getElementById('displayNet').innerText = (tIn - tOut).toFixed(2);
+
+                const listEl = document.getElementById('txList');
+                listEl.innerHTML = reactiveState.transactions.slice().reverse().map((t, idx) => `
+                    <li class="transaction-item">
+                        <div class="t-icon">${t.type === 'COLLECT' ? '📥' : '📤'}</div>
+                        <div class="t-details">
+                            <span class="t-desc">${t.desc}</span>
+                            <span class="t-meta">${t.date} ${t.image ? '• 📎 Receipt' : ''}</span>
+                        </div>
+                        <div class="t-amount" style="color: ${t.type === 'COLLECT' ? 'var(--color-success)' : 'var(--color-text-primary)'}">
+                            ${parseFloat(t.amount).toFixed(2)}
+                        </div>
+                        <div class="t-delete" onclick="window.app.deleteTx(${reactiveState.transactions.length - 1 - idx})">✕</div>
+                    </li>
+                `).join('');
+            },
+
+            renderReport() {
+                const tbody = document.getElementById('reportTableBody');
+                let total = 0;
+                tbody.innerHTML = reactiveState.transactions.map(t => {
+                    const val = parseFloat(t.amount);
+                    if (t.type === 'COLLECT') total += val; else total -= val;
+                    return `
+                        <tr>
+                            <td style="padding:8px; border-bottom:1px solid #eee">${t.date}</td>
+                            <td style="padding:8px; border-bottom:1px solid #eee">${t.desc}</td>
+                            <td style="padding:8px; border-bottom:1px solid #eee; text-align:right">${val.toFixed(2)}</td>
+                        </tr>
+                    `;
+                }).join('');
+                document.getElementById('reportTotal').innerText = `Net: ${total.toFixed(2)}`;
+            }
+        };
+
+        // Application Controller (Exposed to Window for HTML event binding)
+        window.app = {
+            async addTransaction() {
+                const type = document.getElementById('inputType').value;
+                const desc = document.getElementById('inputDesc').value;
+                const amt = parseFloat(document.getElementById('inputAmt').value);
+                const fileInput = document.getElementById('inputFile');
+
+                if (!desc || !amt) return alert('Please fill details');
+
+                let imgData = null;
+                if (fileInput.files[0]) {
+                    // Limit: 500KB
+                    if(fileInput.files[0].size > 500000) return alert('Image too large (Max 500KB)');
+                    imgData = await FileService.toBase64(fileInput.files[0]);
                 }
 
-                // Pass the ORIGINAL index (from the end of the array) to deleteItem
-                const originalIndex = ledger.length - 1 - index;
+                // Create new array reference to trigger Proxy
+                reactiveState.transactions = [...reactiveState.transactions, {
+                    id: crypto.randomUUID(),
+                    date: new Date().toLocaleDateString('en-CA'),
+                    type, desc, amount: amt, image: imgData
+                }];
 
-                dashBody.innerHTML += `
-                    <tr>
-                        <td>${item.date.substring(5)}</td>
-                        <td>${getTypeIcon(item.type)}</td>
-                        <td>${amt.toFixed(2)}</td>
-                        <td class="fs-xs text-secondary">${refContent}</td>
-                        <td class="cursor-pointer text-error" onclick="deleteItem(${originalIndex})">×</td>
-                    </tr>
-                `;
-            });
+                // Reset Form
+                document.getElementById('inputDesc').value = '';
+                document.getElementById('inputAmt').value = '';
+                fileInput.value = '';
+            },
 
-            // Update Net Status
-            const net = totalCol - totalOut;
-            const statusBox = document.getElementById('statusDisplay');
-            statusBox.className = 'status-box'; // reset
-            if (net > 0) {
-                statusBox.textContent = `You Owe Company: dh${net.toFixed(2)}`;
-                statusBox.classList.add('status-pos');
-            } else if (net < 0) {
-                statusBox.textContent = `Company Owes You: dh${(-net).toFixed(2)}`;
-                statusBox.classList.add('status-neg');
-            } else {
-                statusBox.textContent = 'Settled!';
-                statusBox.classList.add('status-zero');
+            deleteTx(realIndex) {
+                if(!confirm('Delete item?')) return;
+                const newArr = [...reactiveState.transactions];
+                newArr.splice(realIndex, 1);
+                reactiveState.transactions = newArr;
+            },
+
+            toggleReportMode() {
+                reactiveState.viewMode = reactiveState.viewMode === 'dashboard' ? 'report' : 'dashboard';
+                RenderEngine.update();
             }
+        };
 
-            document.getElementById('dashCol').innerText = totalCol.toFixed(2);
-            document.getElementById('dashDep').innerText = totalOut.toFixed(2);
-        }
-
-        // 2. REPORT RENDERER (Official View)
-        function renderReport() {
-            const reportBody = document.getElementById('reportBody');
-            reportBody.innerHTML = '';
-            
-            let reportTotal = 0;
-
-            // Reports are chronological (Oldest -> Newest)
-            ledger.forEach(item => {
-                const amt = parseFloat(item.amount);
-                
-                // Logic: Collections increase debt, Deposits decrease debt
-                if(item.type === 'COLLECT') reportTotal += amt;
-                else reportTotal -= amt;
-
-                // Logic: Link for report view
-                let refContent = item.ref || '-';
-                if (item.image) {
-                    refContent = `<a href="${item.image}" target="_blank" style="color:var(--m-blue); text-decoration:underline;">View Receipt</a>`;
-                }
-
-                reportBody.innerHTML += `
-                    <tr>
-                        <td>${item.date}</td>
-                        <td>${item.type}</td>
-                        <td>${item.description}</td>
-                        <td>${refContent}</td>
-                        <td class="col-amt">${amt.toFixed(2)}</td>
-                    </tr>
-                `;
-            });
-
-            const totalEl = document.getElementById('reportTotal');
-            totalEl.innerText = `dh${reportTotal.toFixed(2)}`;
-            if(reportTotal > 0) totalEl.style.color = "#d81b60"; // Pink (Debt)
-            else totalEl.style.color = "#10b981"; // Green (Clean)
-        }
-
-        // 3. UTILITIES
-        function getTypeIcon(type) {
-            switch(type) {
-                case "COLLECT": return "📥";
-                case "DEPOSIT": return "📤";
-                case "HOTEL": return "🏨";
-                case "COMMISSION": return "💰";
-            }
-            return type;
-        }
-
-        function truncate(s, len) {
-            if (!s) return '';
-            return (s.length > len) ? s.slice(0, len) + "..." : s;
-        }
-
-        // 4. CORE ACTIONS
-        function addTransaction() {
-            const type = document.getElementById('inType').value;
-            const desc = document.getElementById('inDesc').value.trim();
-            const amt = parseFloat(document.getElementById('inAmt').value);
-            const refName = document.getElementById('inRefText').value;
-
-            if (!desc || isNaN(amt) || amt <= 0) {
-                alert("Please enter a valid description/amount!");
-                return;
-            }
-
-            // Fix: Use local date format (YYYY-MM-DD)
-            const localDate = new Date().toLocaleDateString('en-CA');
-
-            const entry = {
-                date: localDate,
-                type, 
-                description: desc, 
-                amount: amt, 
-                ref: refName,             // The filename text
-                image: currentFileBase64  // The actual image data (Base64 string)
-            };
-            
-            ledger.push(entry);
-            localStorage.setItem('shadow_ledger_v4', JSON.stringify(ledger));
-            
-            render();
-            
-            // Clear Form
-            document.getElementById('inDesc').value = '';
-            document.getElementById('inAmt').value = '';
-            document.getElementById('inFile').value = '';
-            document.getElementById('fileLabel').textContent = "📎 Click to attach receipt (Image/PDF)";
-            document.getElementById('inRefText').value = '';
-            currentFileBase64 = null; // Important reset
-        }
-
-        function handleFileSelect(input) {
-            const file = input.files[0];
-            if (!file) return;
-
-            // Safety: Limit file size to ~500KB
-            if (file.size > 500000) { 
-                alert("File too big! Please select an image smaller than 500KB.");
-                input.value = "";
-                return;
-            }
-
-            // Convert Image to Base64 String
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                currentFileBase64 = e.target.result; // Store the string
-                document.getElementById('fileLabel').textContent = "✅ " + file.name;
-                document.getElementById('inRefText').value = file.name;
-            };
-            reader.readAsDataURL(file);
-        }
-
-        function deleteItem(idx) {
-            if (!confirm("Delete this transaction?")) return;
-            ledger.splice(idx, 1);
-            localStorage.setItem('shadow_ledger_v4', JSON.stringify(ledger));
-            render();
-        }
-
-        function clearData() {
-            if (!confirm("Are you sure you want to reset ALL transactions?")) return;
-            ledger = [];
-            localStorage.removeItem('shadow_ledger_v4');
-            render();
-        }
-
-        function switchView(view) {
-            if (view === 'report') {
-                document.getElementById('dashboard-view').style.display = 'none';
-                document.getElementById('report-view').style.display = 'block';
-                renderReport(); // Call the specific report renderer
-            } else {
-                document.getElementById('report-view').style.display = 'none';
-                document.getElementById('dashboard-view').style.display = 'block';
-                render();
-            }
-        }
-
-        // INITIALIZE APP
-        render();
+        // Boot
+        RenderEngine.init();
     </script>
 </body>
 </html>
