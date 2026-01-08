@@ -177,298 +177,87 @@
         color: #222;
     }
 
-        .report-header { color: var(--m-blue); font-size: 14px; margin-bottom: 5px; }
-        .report-title { color: var(--m-blue); font-size: 42px; margin: 0; font-weight: 800; letter-spacing: -1px; }
-        .report-range { color: var(--m-pink); font-weight: 700; font-size: 14px; margin-top: 5px; margin-bottom: 40px; }
+    .report-header {
+        color: var(--m-blue);
+        font-size: var(--fs-sm);
+        margin-bottom: var(--space-xs);
+        font-weight: var(--fw-bold);
+    }
+    .report-title {
+        color: var(--m-blue);
+        font-size: var(--fs-xl);
+        font-weight: var(--fw-bolder);
+        margin: 0;
+        letter-spacing: -0.04em;
+    }
+    .report-range {
+        color: var(--m-pink);
+        font-weight: var(--fw-bold);
+        font-size: var(--fs-sm);
+        margin-top: var(--space-xs);
+        margin-bottom: var(--space-xl);
+    }
 
-        .meta-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 30px; margin-bottom: 40px; }
-        .meta-item h3 { font-size: 14px; font-weight: 700; margin: 0 0 5px 0; color: #222; }
-        .meta-item p { font-size: 14px; color: #666; margin: 0; }
+    .meta-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: var(--space-lg);
+        margin-bottom: var(--space-xl);
+    }
 
-        .report-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
-        .report-table th { text-align: left; color: var(--m-blue); font-weight: 700; font-size: 14px; padding: 10px 0; border-bottom: 1px solid #eee; }
-        .report-table td { padding: 12px 0; font-size: 13px; color: #444; border-bottom: 1px solid #f0f0f0; }
-        .report-table tr:nth-child(even) { background-color: #f9f9f9; }
-        .col-amt { text-align: right; font-weight: 500; padding-right: 10px; }
+    .meta-item h3 {
+        font-size: var(--fs-xs);
+        font-weight: var(--fw-bold);
+        margin: 0 0 var(--space-xs) 0;
+        color: #222;
+    }
+    .meta-item p {
+        font-size: var(--fs-sm);
+        color: #666;
+        margin: 0;
+    }
 
-        .report-total { text-align: right; margin-top: 20px; color: var(--m-pink); font-size: 32px; font-weight: 700; }
+    .report-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: var(--space-lg);
+    }
+    .report-table th {
+        text-align: left;
+        color: var(--m-blue);
+        font-weight: var(--fw-bold);
+        font-size: var(--fs-sm);
+        padding: var(--space-xs) 0;
+        border-bottom: 1px solid #eee;
+    }
+    .report-table td {
+        padding: var(--space-sm) 0;
+        font-size: var(--fs-sm);
+        color: #444;
+        border-bottom: 1px solid #f2f2f2;
+    }
+    .report-table tr:nth-child(even) {
+        background-color: #f9f9f9;
+    }
+    .col-amt {
+        text-align: right;
+        font-weight: var(--fw-bold);
+        padding-right: var(--space-sm);
+    }
 
-        /* PRINT MEDIA QUERY */
-        @media print {
-            #dashboard-view { display: none !important; }
-            #report-view { display: block !important; padding: 0; margin: 0; }
-            .no-print { display: none !important; }
-            body { background-color: white; padding: 0; }
-        }
-    </style>
-</head>
-<body>
+    .report-total {
+        text-align: right;
+        margin-top: var(--space-md);
+        color: var(--m-pink);
+        font-size: 2rem;
+        font-weight: var(--fw-bolder);
+    }
 
-    <div id="dashboard-view">
-        <div class="card">
-            <h1 style="float:left;">🌑 Shadow Ledger</h1>
-            <button onclick="switchView('report')" style="float:right; width:auto; margin:0; padding:5px 10px; font-size:12px;" class="btn-blue">📄 View Official Report</button>
-            <div style="clear:both;"></div>
-            
-            <div id="statusDisplay" class="status-box status-zero">Loading...</div>
-            <div style="display: flex; justify-content: space-between; margin-top: 15px; font-size: 13px; color: #aaa;">
-                <div>📥 Collected: <span id="dashCol" style="color:white">0.00</span></div>
-                <div>📤 Transferred/Deposited: <span id="dashDep" style="color:white">0.00</span></div>
-            </div>
-        </div>
-
-        <div class="card">
-            <h1>📝 Add Transaction</h1>
-            
-            <label>Transaction Type</label>
-            <select id="inType">
-                <option value="COLLECT">📥 Collection (Cash In)</option>
-                <option value="DEPOSIT">📤 Bank Deposit (Cash Out)</option>
-                <option value="HOTEL">🏨 Transfer to Hotel (Internal)</option>
-                <option value="COMMISSION">💰 Commission (Offset)</option>
-            </select>
-
-            <label>Description</label>
-            <input type="text" id="inDesc" placeholder="e.g. Safari - Jogi">
-
-            <label>Amount (AED)</label>
-            <input type="number" id="inAmt" placeholder="0.00" step="0.01">
-
-            <label>Reference / Receipt Upload</label>
-            <div class="file-upload-wrapper">
-                <div class="file-custom-btn" id="fileLabel">📎 Click to attach receipt (Image/PDF)</div>
-                <input type="file" id="inFile" onchange="handleFileSelect(this)">
-            </div>
-            <input type="hidden" id="inRefText">
-
-            <button class="btn-green" onclick="addTransaction()">Save Transaction</button>
-        </div>
-
-        <div class="card">
-            <h1>Recent Activity <span style="float:right; font-size:12px; cursor:pointer; color:#ef4444;" onclick="clearData()">[Reset]</span></h1>
-            <table class="dash-table">
-                <thead><tr><th>Date</th><th>Type</th><th>Amt</th><th>Ref</th><th></th></tr></thead>
-                <tbody id="dashBody"></tbody>
-            </table>
-        </div>
-    </div>
-
-    <div id="report-view">
-        <div class="no-print" style="margin-bottom: 20px;">
-            <button onclick="switchView('dashboard')" style="width:auto; padding: 8px 15px; font-size:14px; background:#444; color:white;">← Back to Dashboard</button>
-            <button onclick="window.print()" style="width:auto; padding: 8px 15px; font-size:14px; float:right; background:#303f9f; color:white;">🖨️ Print / Save PDF</button>
-        </div>
-
-        <div class="report-header">Courtyard By Marriott, Al Barsha</div>
-        <h1 class="report-title">Cash Ledger</h1>
-        <div class="report-range" id="reportDateRange">Aug 1, 2025 - Jan 6, 2026</div>
-
-        <div class="meta-grid">
-            <div class="meta-item">
-                <h3>Name</h3><p>Ahmed Backer</p>
-                <h3 style="margin-top:15px;">Manager</h3><p>Ankur</p>
-            </div>
-            <div class="meta-item">
-                <h3>Employee ID</h3><p>Travel Desk</p>
-                <h3 style="margin-top:15px;">Purpose</h3><p>Cash Flow Reconciliation</p>
-            </div>
-            <div class="meta-item">
-                <h3>Department</h3><p>Travel Desk</p>
-            </div>
-        </div>
-
-        <table class="report-table">
-            <thead>
-                <tr>
-                    <th style="width:15%">Date</th>
-                    <th style="width:20%">Category</th>
-                    <th style="width:30%">Description</th>
-                    <th style="width:20%">Reference / Receipt</th>
-                    <th class="col-amt">Amount</th>
-                </tr>
-            </thead>
-            <tbody id="reportBody"></tbody>
-        </table>
-
-        <div class="report-total" id="reportTotal">dh0.00</div>
-    </div>
-
-    <script>
-        // --- LOGIC ENGINE ---
-        // Using 'shadow_ledger_v4' to avoid conflicts with previous versions
-        let ledger = JSON.parse(localStorage.getItem('shadow_ledger_v4')) || [];
-
-        function render() {
-            // Render Dashboard Table
-            const dashBody = document.getElementById('dashBody');
-            dashBody.innerHTML = '';
-            
-            const sortedDash = ledger.slice().reverse();
-            
-            let totalCol = 0, totalOut = 0;
-
-            sortedDash.forEach((item, index) => {
-                const amt = parseFloat(item.amount);
-                // Logic: Collections add to Liability. Deposits, Hotel Transfers, Commissions subtract.
-                if(item.type === 'COLLECT') totalCol += amt;
-                else totalOut += amt; // Everything else reduces liability
-
-                dashBody.innerHTML += `
-                    <tr>
-                        <td>${item.date.substring(5)}</td>
-                        <td>${getTypeIcon(item.type)}</td>
-                        <td>${amt.toFixed(2)}</td>
-                        <td style="font-size:11px; color:#888;">${truncate(item.ref, 10)}</td>
-                        <td style="color:#ef4444; cursor:pointer;" onclick="deleteItem(${ledger.length - 1 - index})">×</td>
-                    </tr>
-                `;
-            });
-
-            // Update Dashboard Stats
-            const net = totalCol - totalOut;
-            document.getElementById('dashCol').innerText = totalCol.toFixed(2);
-            document.getElementById('dashDep').innerText = totalOut.toFixed(2);
-            
-            const statusBox = document.getElementById('statusDisplay');
-            if(net > 0.01) {
-                statusBox.className = 'status-box status-pos';
-                statusBox.innerHTML = `PAYABLE TO COMPANY<br>AED ${net.toFixed(2)}`;
-            } else if (net < -0.01) {
-                statusBox.className = 'status-box status-neg';
-                statusBox.innerHTML = `COMPANY OWES YOU<br>AED ${Math.abs(net).toFixed(2)}`;
-            } else {
-                statusBox.className = 'status-box status-zero';
-                statusBox.innerHTML = `ALL SETTLED`;
-            }
-
-            // Render Report Table
-            const reportBody = document.getElementById('reportBody');
-            reportBody.innerHTML = '';
-            
-            const sortedReport = ledger.slice().sort((a,b) => new Date(a.date) - new Date(b.date));
-            
-            if(sortedReport.length > 0) {
-                 const d1 = new Date(sortedReport[0].date).toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'});
-                 const d2 = new Date(sortedReport[sortedReport.length-1].date).toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'});
-                 document.getElementById('reportDateRange').innerText = `${d1} - ${d2}`;
-            }
-
-            let reportNet = 0;
-            sortedReport.forEach(item => {
-                const amt = parseFloat(item.amount);
-                if(item.type === 'COLLECT') reportNet += amt;
-                else reportNet -= amt;
-
-                reportBody.innerHTML += `
-                    <tr>
-                        <td>${new Date(item.date).toLocaleDateString('en-US', {month:'short', day:'numeric'})}</td>
-                        <td><strong>${getTypeLabel(item.type)}</strong></td>
-                        <td>${item.desc}</td>
-                        <td style="color:#666; font-style:italic;">${item.ref || '-'}</td>
-                        <td class="col-amt">dh${amt.toLocaleString('en-US', {minimumFractionDigits: 2})}</td>
-                    </tr>
-                `;
-            });
-
-            const reportTotalEl = document.getElementById('reportTotal');
-            reportTotalEl.innerText = `dh${Math.abs(reportNet).toLocaleString('en-US', {minimumFractionDigits: 2})}`;
-            if(reportNet > 0.01) { reportTotalEl.style.color = '#d81b60'; } // Pink
-            else if (reportNet < -0.01) { reportTotalEl.style.color = '#064e3b'; } // Green
-            else { reportTotalEl.style.color = '#ccc'; }
-        }
-
-        // --- ACTIONS ---
-        function addTransaction() {
-            const type = document.getElementById('inType').value;
-            const desc = document.getElementById('inDesc').value;
-            const amt = document.getElementById('inAmt').value;
-            const ref = document.getElementById('inRefText').value;
-
-            if(!amt || !desc) { alert("Please fill amount and description"); return; }
-
-            ledger.push({
-                date: new Date().toISOString().split('T')[0],
-                type: type,
-                desc: desc,
-                amount: parseFloat(amt),
-                ref: ref || 'Manual Entry'
-            });
-            
-            save();
-            // Reset Inputs
-            document.getElementById('inDesc').value = '';
-            document.getElementById('inAmt').value = '';
-            document.getElementById('inRefText').value = '';
-            document.getElementById('fileLabel').innerText = '📎 Click to attach receipt (Image/PDF)';
-        }
-
-        function deleteItem(index) {
-            if(confirm('Delete this line?')) {
-                ledger.splice(index, 1);
-                save();
-            }
-        }
-
-        function save() {
-            localStorage.setItem('shadow_ledger_v4', JSON.stringify(ledger));
-            render();
-        }
-
-        function clearData() {
-            if(confirm('Wipe all data and start fresh?')) {
-                localStorage.removeItem('shadow_ledger_v4');
-                ledger = [];
-                render();
-            }
-        }
-
-        // --- VIEW SWITCHER ---
-        function switchView(viewName) {
-            const dash = document.getElementById('dashboard-view');
-            const rep = document.getElementById('report-view');
-            
-            if(viewName === 'report') {
-                dash.style.display = 'none';
-                rep.style.display = 'block';
-                document.body.style.backgroundColor = 'white'; 
-            } else {
-                dash.style.display = 'block';
-                rep.style.display = 'none';
-                document.body.style.backgroundColor = '#1a1a1a'; 
-            }
-        }
-
-        // --- HELPERS ---
-        function handleFileSelect(input) {
-            if (input.files && input.files[0]) {
-                const filename = input.files[0].name;
-                document.getElementById('inRefText').value = filename;
-                document.getElementById('fileLabel').innerText = "✅ Attached: " + filename;
-                document.getElementById('fileLabel').style.color = "#10b981";
-                document.getElementById('fileLabel').style.borderColor = "#10b981";
-            }
-        }
-
-        function getTypeIcon(type) {
-            if(type === 'COLLECT') return '📥';
-            if(type === 'DEPOSIT') return '📤';
-            if(type === 'HOTEL') return '🏨';
-            return '💰';
-        }
-
-        function getTypeLabel(type) {
-            if(type === 'COLLECT') return 'Collection';
-            if(type === 'DEPOSIT') return 'Deposit';
-            if(type === 'HOTEL') return 'Internal Transfer - Hotel';
-            if(type === 'COMMISSION') return 'Commission Offset';
-            return type;
-        }
-        
-        function truncate(str, n){
-            return (str.length > n) ? str.substr(0, n-1) + '&hellip;' : str;
-        }
-
-        render();
-    </script>
-</body>
-</html>
+    /* PRINT STYLES */
+    @media print {
+        #dashboard-view { display: none !important; }
+        #report-view { display: block !important; padding: 0; margin: 0; }
+        .no-print { display: none !important; }
+        body { background-color: #fff; color: #222; padding: 0; }
+    }
+</style>
