@@ -382,131 +382,172 @@
     </div>
 
     <script>
-        // --- LOGIC ENGINE ---
-        let ledger = JSON.parse(localStorage.getItem('shadow_ledger_v4')) || [];
+       // --- LOGIC ENGINE ---
+let ledger = JSON.parse(localStorage.getItem('shadow_ledger_v4')) || [];
 
-        function render() {
-            // Render Dashboard Table
-            const dashBody = document.getElementById('dashBody');
-            dashBody.innerHTML = '';
+function render() {
+    // Render Dashboard Table
+    const dashBody = document.getElementById('dashBody');
+    dashBody.innerHTML = '';
 
-            const sortedDash = ledger.slice().reverse();
+    const sortedDash = ledger.slice().reverse();
+    let totalCol = 0, totalOut = 0;
 
-            let totalCol = 0, totalOut = 0;
+    sortedDash.forEach((item, index) => {
+        const amt = parseFloat(item.amount);
+        if(item.type === 'COLLECT') totalCol += amt;
+        else totalOut += amt;
 
-            sortedDash.forEach((item, index) => {
-                const amt = parseFloat(item.amount);
-                if(item.type === 'COLLECT') totalCol += amt;
-                else totalOut += amt;
+        dashBody.innerHTML += `
+            <tr>
+                <td>${item.date.substring(5)}</td>
+                <td>${getTypeIcon(item.type)}</td>
+                <td>${amt.toFixed(2)}</td>
+                <td class="fs-xs text-secondary">${truncate(item.ref, 10)}</td>
+                <td class="cursor-pointer text-error" onclick="deleteItem(${ledger.length - 1 - index})">×</td>
+            </tr>
+        `;
+    });
 
-                dashBody.innerHTML += `
-                    <tr>
-                        <td>${item.date.substring(5)}</td>
-                        <td>${getTypeIcon(item.type)}</td>
-                        <td>${amt.toFixed(2)}</td>
-                        <td class="fs-xs text-secondary">${truncate(item.ref, 10)}</td>
-                        <td class="cursor-pointer text-error" onclick="deleteItem(${ledger.length - 1 - index})">×</td>
-                    </tr>
-                `;
-            });
+    // Update Status Box
+    const net = totalCol - totalOut;
+    const statusBox = document.getElementById('statusDisplay');
+    statusBox.className = 'status-box'; // reset classes
+    
+    if (net > 0) {
+        statusBox.textContent = `You Owe Company: dh${net.toFixed(2)}`;
+        statusBox.classList.add('status-pos');
+    } else if (net < 0) {
+        statusBox.textContent = `Company Owes You: dh${(-net).toFixed(2)}`;
+        statusBox.classList.add('status-neg');
+    } else {
+        statusBox.textContent = 'Settled!';
+        statusBox.classList.add('status-zero');
+    }
 
-            const net = totalCol - totalOut;
-            const statusBox = document.getElementById('statusDisplay');
-            statusBox.className = 'status-box'; // reset
-            if (net > 0) {
-                statusBox.textContent = `You Owe Company: dh${net.toFixed(2)}`;
-                statusBox.classList.add('status-pos');
-            } else if (net < 0) {
-                statusBox.textContent = `Company Owes You: dh${(-net).toFixed(2)}`;
-                statusBox.classList.add('status-neg');
-            } else {
-                statusBox.textContent = 'Settled!';
-                statusBox.classList.add('status-zero');
-            }
+    document.getElementById('dashCol').innerText = totalCol.toFixed(2);
+    document.getElementById('dashDep').innerText = totalOut.toFixed(2);
+}
 
-            document.getElementById('dashCol').innerText = totalCol.toFixed(2);
-            document.getElementById('dashDep').innerText = totalOut.toFixed(2);
-        }
+// *** NEW FUNCTION: Actually renders the Report View ***
+function renderReport() {
+    const reportBody = document.getElementById('reportBody');
+    reportBody.innerHTML = ''; // Clear previous lines
+    
+    let reportTotal = 0;
 
-        function getTypeIcon(type) {
-            switch(type) {
-                case "COLLECT": return "📥";
-                case "DEPOSIT": return "📤";
-                case "HOTEL": return "🏨";
-                case "COMMISSION": return "💰";
-            }
-            return type;
-        }
+    // We usually want reports chronological (Oldest -> Newest), unlike the dashboard
+    ledger.forEach(item => {
+        const amt = parseFloat(item.amount);
+        
+        // Calculate running total logic specifically for the report
+        // If it's a COLLECTION, it adds to debt. If DEPOSIT, it reduces debt.
+        if(item.type === 'COLLECT') reportTotal += amt;
+        else reportTotal -= amt;
 
-        function addTransaction() {
-            const type = document.getElementById('inType').value;
-            const desc = document.getElementById('inDesc').value.trim();
-            const amt = parseFloat(document.getElementById('inAmt').value);
-            const ref = document.getElementById('inRefText').value;
+        reportBody.innerHTML += `
+            <tr>
+                <td>${item.date}</td>
+                <td>${item.type}</td>
+                <td>${item.description}</td>
+                <td>${item.ref || '-'}</td>
+                <td class="col-amt">${amt.toFixed(2)}</td>
+            </tr>
+        `;
+    });
 
-            if (!desc || isNaN(amt) || amt <= 0) {
-                alert("Please enter a valid description/amount!");
-                return;
-            }
-            const entry = {
-                date: new Date().toISOString().slice(0, 10),
-                type, description: desc, amount: amt, ref
-            };
-            ledger.push(entry);
-            localStorage.setItem('shadow_ledger_v4', JSON.stringify(ledger));
-            render();
-            document.getElementById('inDesc').value = '';
-            document.getElementById('inAmt').value = '';
-            document.getElementById('inFile').value = '';
-            document.getElementById('fileLabel').textContent = "📎 Click to attach receipt (Image/PDF)";
-            document.getElementById('inRefText').value = '';
-        }
+    // Update the Big Total at the bottom
+    const totalEl = document.getElementById('reportTotal');
+    totalEl.innerText = `dh${reportTotal.toFixed(2)}`;
+    
+    // Optional: Color code the final report total
+    if(reportTotal > 0) totalEl.style.color = "#d81b60"; // Pink/Red (Owe money)
+    else totalEl.style.color = "#10b981"; // Green (Clean/Owed)
+}
 
-        function truncate(s, len) {
-            if (!s) return '';
-            return (s.length > len) ? s.slice(0, len) + "..." : s;
-        }
+function getTypeIcon(type) {
+    switch(type) {
+        case "COLLECT": return "📥";
+        case "DEPOSIT": return "📤";
+        case "HOTEL": return "🏨";
+        case "COMMISSION": return "💰";
+    }
+    return type;
+}
 
-        function deleteItem(idx) {
-            if (!confirm("Delete this transaction?")) return;
-            ledger.splice(idx, 1);
-            localStorage.setItem('shadow_ledger_v4', JSON.stringify(ledger));
-            render();
-        }
+function addTransaction() {
+    const type = document.getElementById('inType').value;
+    const desc = document.getElementById('inDesc').value.trim();
+    const amt = parseFloat(document.getElementById('inAmt').value);
+    const ref = document.getElementById('inRefText').value;
 
-        function clearData() {
-            if (!confirm("Are you sure you want to reset ALL transactions?")) return;
-            ledger = [];
-            localStorage.removeItem('shadow_ledger_v4');
-            render();
-        }
+    if (!desc || isNaN(amt) || amt <= 0) {
+        alert("Please enter a valid description/amount!");
+        return;
+    }
 
-        function handleFileSelect(input) {
-            const file = input.files[0];
-            if (!file) return;
-            document.getElementById('fileLabel').textContent = file.name || "Attached!";
-            document.getElementById('inRefText').value = file.name || "";
-        }
+    // *** FIX: Use local time instead of UTC to fix timezone bug ***
+    // 'en-CA' outputs YYYY-MM-DD format
+    const localDate = new Date().toLocaleDateString('en-CA'); 
 
-        function switchView(view) {
-            if (view === 'report') {
-                document.getElementById('dashboard-view').style.display = 'none';
-                document.getElementById('report-view').style.display = 'block';
-                renderReport();
-            } else {
-                document.getElementById('report-view').style.display = 'none';
-                document.getElementById('dashboard-view').style.display = 'block';
-            }
-        }
+    const entry = {
+        date: localDate, 
+        type, 
+        description: desc, 
+        amount: amt, 
+        ref
+    };
+    
+    ledger.push(entry);
+    localStorage.setItem('shadow_ledger_v4', JSON.stringify(ledger));
+    
+    render(); // Update UI
+    
+    // Clear inputs
+    document.getElementById('inDesc').value = '';
+    document.getElementById('inAmt').value = '';
+    document.getElementById('inFile').value = '';
+    document.getElementById('fileLabel').textContent = "📎 Click to attach receipt (Image/PDF)";
+    document.getElementById('inRefText').value = '';
+}
 
-        function renderReport() {
-            // ... You can add your report-specific rendering logic here
-            // For demonstration, we just call render()
-            render();
-        }
+function truncate(s, len) {
+    if (!s) return '';
+    return (s.length > len) ? s.slice(0, len) + "..." : s;
+}
 
-        // INITIALIZE
+function deleteItem(idx) {
+    if (!confirm("Delete this transaction?")) return;
+    ledger.splice(idx, 1);
+    localStorage.setItem('shadow_ledger_v4', JSON.stringify(ledger));
+    render();
+}
+
+function clearData() {
+    if (!confirm("Are you sure you want to reset ALL transactions?")) return;
+    ledger = [];
+    localStorage.removeItem('shadow_ledger_v4');
+    render();
+}
+
+function handleFileSelect(input) {
+    const file = input.files[0];
+    if (!file) return;
+    document.getElementById('fileLabel').textContent = file.name || "Attached!";
+    document.getElementById('inRefText').value = file.name || "";
+}
+
+function switchView(view) {
+    if (view === 'report') {
+        document.getElementById('dashboard-view').style.display = 'none';
+        document.getElementById('report-view').style.display = 'block';
+        renderReport(); // *** Call the NEW render function ***
+    } else {
+        document.getElementById('report-view').style.display = 'none';
+        document.getElementById('dashboard-view').style.display = 'block';
         render();
-    </script>
-</body>
-</html>
+    }
+}
+
+// INITIALIZE
+render();
