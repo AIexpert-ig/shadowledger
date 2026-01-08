@@ -1,0 +1,9 @@
+/* 2026 MODERN CSS STACK
+ * Features: OKLCH Colors, CSS Variables, Native Nesting, Container Queries
+ */
+
+/* ===== Layered CSS (reset/base/components/utilities) ===== */
+@layer reset, base, components, utilities;
+
+/* ... paste everything from your original <style> ... */
+
