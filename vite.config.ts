@@ -1,9 +1,7 @@
-// vite.config.ts
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react-swc'
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
 
 export default defineConfig({
   plugins: [react()],
-  // IF your repo is 'shadowledger', uncomment the line below:
-  // base: '/shadowledger/', 
-})
+  base: '/shadowledger/', // <-- must match your repository name
+});
