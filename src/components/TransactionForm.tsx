@@ -1,5 +1,5 @@
 // src/components/TransactionForm.tsx
-import React, { useState, useRef } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import type { LedgerEntry } from '../store/ledger'
 import { useLedgerStore } from '../store/ledger'
 import { FileService } from '../services/file'
@@ -9,8 +9,15 @@ export const TransactionForm = () => {
   const [desc, setDesc] = useState('')
   const [amount, setAmount] = useState(0)
   const fileRef = useRef<HTMLInputElement>(null)
+  const isMountedRef = useRef(true)
 
   const addTx = useLedgerStore(state => state.addTx)
+
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false
+    }
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -35,17 +42,22 @@ export const TransactionForm = () => {
     addTx(newTx)
 
     // Reset form
+    if (!isMountedRef.current) return
     setDesc('')
     setAmount(0)
     if (fileRef.current) fileRef.current.value = ''
   }
 
   return (
-    <section className="glass-card">
+    <><section className="glass-card">
       <form onSubmit={handleSubmit}>
         <div className="input-group">
           <label htmlFor="type">Type</label>
-          <select id="type" value={type} onChange={e => setType(e.target.value as any)}>
+          <select
+            id="type"
+            value={type}
+            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setType(e.target.value as 'COLLECT' | 'DEPOSIT')}
+          >
             <option value="COLLECT">📥 Collection (In)</option>
             <option value="DEPOSIT">📤 Deposit (Out)</option>
           </select>
@@ -55,29 +67,26 @@ export const TransactionForm = () => {
           <input
             id="desc"
             type="text"
-            value={desc}
-            placeholder="Client Name or Reference"
-            onChange={e => setDesc(e.target.value)}
-          />
-        </div>
-        <div className="input-group">
-          <label htmlFor="amount">Amount</label>
-          <input
-            id="amount"
-            type="number"
-            value={amount === 0 ? '' : amount}
-            step="0.01"
-            placeholder="0.00"
-            onChange={e => setAmount(parseFloat(e.target.value) || 0)}
-          />
-        </div>
-        <div className="input-group">
-          <label htmlFor="file">Receipt Image</label>
-          <input id="file" ref={fileRef} type="file" accept="image/*" />
-        </div>
-        <button type="submit" className="btn primary" style={{ width: '100%' }}>
-          Save Entry
-        </button>
+          value={desc}
+          placeholder="Client Name or Reference"
+          onChange={e => setDesc(e.target.value)} />
+      </div><div className="input-group">
+        <label htmlFor="amount">Amount</label>
+        <input
+          id="amount"
+          type="number"
+          value={amount === 0 ? '' : amount}
+          step="0.01"
+          placeholder="0.00"
+          onChange={e => setAmount(parseFloat(e.target.value) || 0)} />
+      </div><div className="input-group">
+        <label htmlFor="file">Receipt Image</label>
+        <input id="file" ref={fileRef} type="file" accept="image/*" />
+      </div><button type="submit" className="btn primary" style={{ width: '100%' }}>
+        Save Entry
+      </button>
       </form>
-    </section>
-  )
+      </section>
+    </>
+  );
+}
