@@ -1,16 +1,13 @@
 // src/components/TransactionItem.tsx
 import React from 'react'
 import type { LedgerEntry } from '../store/ledger'
-import { useLedgerStore } from '../store/ledger'
 
 interface Props {
   entry: LedgerEntry
-  index: number
+  onDelete: (id: string) => void
 }
 
-export const TransactionItem: React.FC<Props> = ({ entry, index }) => {
-  const deleteTx = useLedgerStore(state => state.deleteTx)
-
+export const TransactionItem = React.memo(({ entry, onDelete }: Props) => {
   return (
     <li className="transaction-item">
       <div className="t-icon">{entry.type === 'COLLECT' ? '📥' : '📤'}</div>
@@ -28,10 +25,10 @@ export const TransactionItem: React.FC<Props> = ({ entry, index }) => {
       </div>
       <div
         className="t-delete"
-        onClick={() => deleteTx(entry.id)}
+        onClick={() => onDelete(entry.id)}
       >
         ✕
       </div>
     </li>
   )
-}
+})

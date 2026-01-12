@@ -1,18 +1,20 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useLedgerStore } from '../store/ledger';
 
 export const StatsCard = () => {
-  // Derived totals computed inside the selector
-  const totals = useLedgerStore((state) =>
-    state.transactions.reduce(
-      (acc, t) => {
-        const val = t.amount;
-        if (t.type === 'COLLECT') acc.in += val;
-        else acc.out += val;
-        return acc;
-      },
-      { in: 0, out: 0 }
-    )
+  const transactions = useLedgerStore((state) => state.transactions);
+  const totals = useMemo(
+    () =>
+      transactions.reduce(
+        (acc, t) => {
+          const val = t.amount;
+          if (t.type === 'COLLECT') acc.in += val;
+          else acc.out += val;
+          return acc;
+        },
+        { in: 0, out: 0 }
+      ),
+    [transactions]
   );
 
   const net = totals.in - totals.out;
