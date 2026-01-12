@@ -1,16 +1,18 @@
 import { useLedgerStore } from '../store/ledger';
 
 export const StatsCard = () => {
-  const totals = useLedgerStore((state) =>
-    state.transactions.reduce(
-      (acc, t) => {
-        const val = t.amount;
-        if (t.type === 'COLLECT') acc.in += val;
-        else acc.out += val;
-        return acc;
-      },
-      { in: 0, out: 0 }
-    )
+  // FIX: Select ONLY the transactions list first (Stable)
+  const transactions = useLedgerStore((state) => state.transactions);
+
+  // Calculate totals inside the component (Safe)
+  const totals = transactions.reduce(
+    (acc, t) => {
+      const val = t.amount;
+      if (t.type === 'COLLECT') acc.in += val;
+      else acc.out += val;
+      return acc;
+    },
+    { in: 0, out: 0 }
   );
 
   const net = totals.in - totals.out;
@@ -18,7 +20,7 @@ export const StatsCard = () => {
   return (
     <section className="glass-card" style={{ marginBottom: '2rem', position: 'relative', overflow: 'hidden' }}>
       
-      {/* 2026 Touch: A subtle glowing orb in the background of the card */}
+      {/* Background Glow */}
       <div style={{
         position: 'absolute', top: '-50%', left: '-50%', width: '200%', height: '200%',
         background: 'radial-gradient(circle, rgba(255,255,255,0.03) 0%, transparent 60%)',
@@ -27,7 +29,7 @@ export const StatsCard = () => {
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem', position: 'relative', zIndex: 1 }}>
         
-        {/* Column 1: Collected */}
+        {/* Collected */}
         <div style={{ textAlign: 'center' }}>
           <div style={{ fontSize: '0.7rem', fontWeight: 800, letterSpacing: '0.1em', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>
             COLLECTED
@@ -38,7 +40,7 @@ export const StatsCard = () => {
           </div>
         </div>
 
-        {/* Column 2: NET (Hero) */}
+        {/* Net Total */}
         <div style={{ textAlign: 'center', borderLeft: '1px solid var(--glass-border)', borderRight: '1px solid var(--glass-border)' }}>
           <div style={{ fontSize: '0.7rem', fontWeight: 800, letterSpacing: '0.1em', color: 'var(--primary)', marginBottom: '0.5rem' }}>
             NET TOTAL
@@ -48,7 +50,7 @@ export const StatsCard = () => {
           </div>
         </div>
 
-        {/* Column 3: Out */}
+        {/* Deposited */}
         <div style={{ textAlign: 'center' }}>
           <div style={{ fontSize: '0.7rem', fontWeight: 800, letterSpacing: '0.1em', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>
             DEPOSITED
