@@ -1,16 +1,34 @@
-// src/app.tsx
 import { useLedgerStore } from './store/ledger'
-import { DashboardView } from './components/DashboardView'
+import { StatsCard } from './components/StatsCard'
+import { TransactionForm } from './components/TransactionForm'
+import { TransactionList } from './components/TransactionList'
 import { ReportView } from './components/ReportView'
 
-// Expose a tiny shim to keep the original button callbacks working.
-// In a real app you'd replace it with a proper useLedgerStore() call.
-export const app = {
-  toggleReportMode: () => useLedgerStore.getState().toggleView()
-}
+export default function App() {
+  const currentView = useLedgerStore((state) => state.currentView)
+  const setView = useLedgerStore((state) => state.setView)
 
-export const App = () => {
-  const mode = useLedgerStore(state => state.viewMode)
+  // 1. If Store says "REPORT", show ONLY the Report View
+  if (currentView === 'REPORT') {
+    return <ReportView />
+  }
 
-  return mode === 'dashboard' ? <DashboardView /> : <ReportView />
+  // 2. Otherwise, show the Dashboard
+  return (
+    <div className="app-container">
+      <header className="header">
+        <h1>Shadow Ledger</h1>
+        <button 
+          className="btn secondary"
+          onClick={() => setView('REPORT')} // Switch to Report Mode
+        >
+          View Report
+        </button>
+      </header>
+      
+      <StatsCard />
+      <TransactionForm />
+      <TransactionList />
+    </div>
+  )
 }

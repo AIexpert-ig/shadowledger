@@ -1,11 +1,10 @@
-import React from 'react'
 import { useLedgerStore } from '../store/ledger'
 
-export const ReportView: React.FC = () => {
-  // FIX: Select ONLY the transactions list
+export const ReportView = () => {
   const txs = useLedgerStore(state => state.transactions)
+  const setView = useLedgerStore(state => state.setView) // Get the switcher
   
-  // FIX: Calculate totals locally
+  // Safe math calculation
   const totals = txs.reduce(
     (acc, t) => {
       const val = t.amount;
@@ -15,13 +14,13 @@ export const ReportView: React.FC = () => {
     },
     { in: 0, out: 0 }
   );
-
   const net = totals.in - totals.out
 
   return (
-    <section className="glass-card" style={{ padding: '2rem', maxWidth: '800px', margin: '0 auto', width: '100%' }}>
+    <section className="glass-card" style={{ padding: '2rem', maxWidth: '800px', margin: '2rem auto' }}>
       <h2 style={{ color: 'var(--text-main)', marginBottom: '1rem' }}>Official Settlement Report</h2>
       
+      {/* Table (Simplified for brevity, same as before) */}
       <table style={{ width: '100%', color: 'var(--text-main)', borderCollapse: 'collapse', marginBottom: '1rem' }}>
         <thead>
           <tr style={{ borderBottom: '2px solid var(--glass-border)' }}>
@@ -35,19 +34,22 @@ export const ReportView: React.FC = () => {
             <tr key={t.id}>
               <td style={{ padding: '8px', borderBottom: '1px solid var(--glass-border)' }}>{t.date}</td>
               <td style={{ padding: '8px', borderBottom: '1px solid var(--glass-border)' }}>{t.desc}</td>
-              <td style={{ padding: '8px', borderBottom: '1px solid var(--glass-border)', textAlign: 'right' }}>
-                {t.amount.toFixed(2)}
-              </td>
+              <td style={{ padding: '8px', borderBottom: '1px solid var(--glass-border)', textAlign: 'right' }}>{t.amount.toFixed(2)}</td>
             </tr>
           ))}
         </tbody>
       </table>
 
-      <div style={{ textAlign: 'right', color: 'var(--primary)', fontSize: '1.5rem', marginTop: '20px', fontWeight: 'bold' }}>
+      <div style={{ textAlign: 'right', color: 'var(--primary)', fontSize: '1.5rem', fontWeight: 'bold' }}>
         Net: {net.toFixed(2)}
       </div>
 
-      <button className="btn secondary" style={{ width: 'auto', marginTop: '1rem' }} onClick={() => (window as any).app.toggleView()}>
+      {/* THE FIX: Use setView('DASHBOARD') instead of window.app */}
+      <button 
+        className="btn secondary" 
+        style={{ marginTop: '2rem' }}
+        onClick={() => setView('DASHBOARD')}
+      >
         ← Back to Dashboard
       </button>
     </section>
