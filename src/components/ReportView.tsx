@@ -1,12 +1,23 @@
-// src/components/ReportView.tsx
 import React from 'react'
 import { useLedgerStore } from '../store/ledger'
 
 export const ReportView: React.FC = () => {
   const txs = useLedgerStore(state => state.transactions)
-  const totals = useLedgerStore(state => state.totals)
+  
+  // FIX: Calculate totals here instead of reading from store
+  const totals = useLedgerStore((state) =>
+    state.transactions.reduce(
+      (acc, t) => {
+        const val = t.amount;
+        if (t.type === 'COLLECT') acc.in += val;
+        else acc.out += val;
+        return acc;
+      },
+      { in: 0, out: 0 }
+    )
+  );
 
-  const net = totals ? totals.in - totals.out : 0
+  const net = totals.in - totals.out
 
   return (
     <section
@@ -18,10 +29,10 @@ export const ReportView: React.FC = () => {
         width: '100%'
       }}
     >
-      <h2 style={{ color: 'black', marginBottom: '1rem' }}>Official Settlement Report</h2>
-      <table style={{ width: '100%', color: 'black', borderCollapse: 'collapse', marginBottom: '1rem' }}>
+      <h2 style={{ color: 'var(--text-main)', marginBottom: '1rem' }}>Official Settlement Report</h2>
+      <table style={{ width: '100%', color: 'var(--text-main)', borderCollapse: 'collapse', marginBottom: '1rem' }}>
         <thead>
-          <tr style={{ borderBottom: '2px solid #333' }}>
+          <tr style={{ borderBottom: '2px solid var(--glass-border)' }}>
             <th style={{ textAlign: 'left', padding: '8px' }}>Date</th>
             <th style={{ textAlign: 'left' }}>Desc</th>
             <th style={{ textAlign: 'right' }}>Amount</th>
@@ -32,12 +43,12 @@ export const ReportView: React.FC = () => {
             const val = t.amount
             return (
               <tr key={t.id}>
-                <td style={{ padding: '8px', borderBottom: '1px solid #eee' }}>{t.date}</td>
-                <td style={{ padding: '8px', borderBottom: '1px solid #eee' }}>{t.desc}</td>
+                <td style={{ padding: '8px', borderBottom: '1px solid var(--glass-border)' }}>{t.date}</td>
+                <td style={{ padding: '8px', borderBottom: '1px solid var(--glass-border)' }}>{t.desc}</td>
                 <td
                   style={{
                     padding: '8px',
-                    borderBottom: '1px solid #eee',
+                    borderBottom: '1px solid var(--glass-border)',
                     textAlign: 'right'
                   }}
                 >
@@ -51,7 +62,7 @@ export const ReportView: React.FC = () => {
       <div
         style={{
           textAlign: 'right',
-          color: 'black',
+          color: 'var(--primary)',
           fontSize: '1.5rem',
           marginTop: '20px',
           fontWeight: 'bold'
@@ -59,7 +70,6 @@ export const ReportView: React.FC = () => {
       >
         Net: {net.toFixed(2)}
       </div>
-
       <button
         className="btn secondary"
         style={{ width: 'auto', marginTop: '1rem' }}
