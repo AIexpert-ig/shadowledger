@@ -1,29 +1,28 @@
-// src/components/TransactionForm.tsx
-import { useState, useRef, useEffect } from 'react'
-import type { FormEvent, ChangeEvent } from 'react'
-import type { LedgerEntry } from '../store/ledger'
+import React, { useState, useRef } from 'react'
 import { useLedgerStore } from '../store/ledger'
 import { FileService } from '../services/file'
+import { LedgerEntry } from '../store/ledger'
 
 export const TransactionForm = () => {
+  // 1. State initialization
   const [type, setType] = useState<'COLLECT' | 'DEPOSIT'>('COLLECT')
   const [desc, setDesc] = useState('')
-  const [amount, setAmount] = useState(0)
+  // Initialize with empty string to avoid "0" appearing in the box
+  const [amountStr, setAmountStr] = useState('') 
+  
   const fileRef = useRef<HTMLInputElement>(null)
-  const isMountedRef = useRef(true)
-
   const addTx = useLedgerStore(state => state.addTx)
 
-  useEffect(() => {
-    return () => {
-      isMountedRef.current = false
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault() // Stop page reload
+    
+    const amtValue = parseFloat(amountStr)
+    if (!desc || isNaN(amtValue) || amtValue <= 0) {
+        alert('Please enter a valid description and amount')
+        return
     }
-  }, [])
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault()
-    if (!desc || !amount) return alert('Please fill details')
-
+    // Handle File
     let imgBase64: string | undefined
     const file = fileRef.current?.files?.[0]
     if (file) {
@@ -36,58 +35,77 @@ export const TransactionForm = () => {
       date: new Date().toLocaleDateString('en-CA'),
       type,
       desc,
-      amount,
+      amount: amtValue,
       image: imgBase64
     }
 
     addTx(newTx)
 
-    // Reset form
-    if (!isMountedRef.current) return
+    // Reset Form
     setDesc('')
-    setAmount(0)
+    setAmountStr('')
     if (fileRef.current) fileRef.current.value = ''
   }
 
   return (
-    <><section className="glass-card">
+    <section className="glass-card">
       <form onSubmit={handleSubmit}>
+        
+        {/* TYPE SELECT */}
         <div className="input-group">
           <label htmlFor="type">Type</label>
-          <select
-            id="type"
-            value={type}
-            onChange={(e: ChangeEvent<HTMLSelectElement>) => setType(e.target.value as 'COLLECT' | 'DEPOSIT')}
+          <select 
+            id="type" 
+            value={type} 
+            onChange={(e) => setType(e.target.value as any)}
           >
             <option value="COLLECT">📥 Collection (In)</option>
             <option value="DEPOSIT">📤 Deposit (Out)</option>
           </select>
         </div>
+
+        {/* DESCRIPTION INPUT */}
         <div className="input-group">
           <label htmlFor="desc">Description</label>
           <input
             id="desc"
             type="text"
-          value={desc}
-          placeholder="Client Name or Reference"
-          onChange={e => setDesc(e.target.value)} />
-      </div><div className="input-group">
-        <label htmlFor="amount">Amount</label>
-        <input
-          id="amount"
-          type="number"
-          value={amount === 0 ? '' : amount}
-          step="0.01"
-          placeholder="0.00"
-          onChange={e => setAmount(parseFloat(e.target.value) || 0)} />
-      </div><div className="input-group">
-        <label htmlFor="file">Receipt Image</label>
-        <input id="file" ref={fileRef} type="file" accept="image/*" />
-      </div><button type="submit" className="btn primary" style={{ width: '100%' }}>
-        Save Entry
-      </button>
+            value={desc}
+            placeholder="Client Name or Reference"
+            onChange={(e) => setDesc(e.target.value)}
+          />
+        </div>
+
+        {/* AMOUNT INPUT (Fixed logic) */}
+        <div className="input-group">
+          <label htmlFor="amount">Amount</label>
+          <input
+            id="amount"
+            type="number"
+            step="0.01"
+            placeholder="0.00"
+            // Use string state to strictly control the input
+            value={amountStr}
+            onChange={(e) => setAmountStr(e.target.value)}
+          />
+        </div>
+
+        {/* FILE INPUT (Uncontrolled is standard for files) */}
+        <div className="input-group">
+          <label htmlFor="file">Receipt Image</label>
+          <input 
+            id="file" 
+            ref={fileRef} 
+            type="file" 
+            accept="image/*" 
+            // Note: File inputs should NOT have value={} or onChange={} for state
+          />
+        </div>
+
+        <button type="submit" className="btn primary" style={{ width: '100%' }}>
+          Save Entry
+        </button>
       </form>
-      </section>
-    </>
-  );
+    </section>
+  )
 }
