@@ -1,9 +1,222 @@
-/* 2026 MODERN CSS STACK
- * Features: OKLCH Colors, CSS Variables, Native Nesting, Container Queries
+/* * THEME: Aurora Glass (2026)
+ * Concept: Deep dark void with organic glowing accents.
  */
 
-/* ===== Layered CSS (reset/base/components/utilities) ===== */
-@layer reset, base, components, utilities;
+ @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&display=swap');
 
-/* ... paste everything from your original <style> ... */
-
+ :root {
+   /* --- PALETTE (OKLCH) --- */
+   --bg-deep: oklch(15% 0.02 240);       /* Deep Navy/Black */
+   --glass-surface: oklch(30% 0.05 240 / 0.4); /* Translucent Blue-Grey */
+   --glass-border: oklch(100% 0 0 / 0.1);      /* Subtle White Border */
+   --glass-highlight: oklch(100% 0 0 / 0.05);  /* Top shine */
+   
+   --primary: oklch(70% 0.15 250);       /* Electric Lavender */
+   --primary-glow: oklch(70% 0.15 250 / 0.4);
+   
+   --accent-green: oklch(75% 0.18 150);  /* Neon Mint */
+   --accent-red: oklch(65% 0.20 25);     /* Hot Coral */
+   
+   --text-main: oklch(98% 0 0);
+   --text-muted: oklch(70% 0.02 240);
+   
+   /* --- SPACING & RADIUS --- */
+   --radius-lg: 24px;
+   --radius-sm: 12px;
+   --space-unit: 1rem;
+ }
+ 
+ /* --- RESET & BASE --- */
+ * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+ 
+ body {
+   margin: 0;
+   font-family: 'Outfit', sans-serif;
+   background-color: var(--bg-deep);
+   color: var(--text-main);
+   min-height: 100vh;
+   /* THE AURORA BACKGROUND */
+   background-image: 
+     radial-gradient(circle at 0% 0%, rgba(56, 189, 248, 0.15) 0%, transparent 50%),
+     radial-gradient(circle at 100% 100%, rgba(139, 92, 246, 0.15) 0%, transparent 50%);
+   background-attachment: fixed;
+ }
+ 
+ /* --- COMPONENTS --- */
+ 
+ /* 1. The Glass Card */
+ .glass-card {
+   background: var(--glass-surface);
+   backdrop-filter: blur(20px) saturate(180%);
+   -webkit-backdrop-filter: blur(20px) saturate(180%);
+   border: 1px solid var(--glass-border);
+   border-top: 1px solid var(--glass-highlight);
+   border-radius: var(--radius-lg);
+   box-shadow: 0 8px 32px -8px rgba(0,0,0,0.5);
+   padding: 1.5rem;
+   transition: transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+ }
+ 
+ /* Hover Effect for interactive cards */
+ .glass-card:hover {
+   border-color: oklch(100% 0 0 / 0.2);
+ }
+ 
+ /* 2. Inputs */
+ .input-group {
+   margin-bottom: 1.25rem;
+   position: relative;
+ }
+ 
+ .input-group label {
+   display: block;
+   font-size: 0.75rem;
+   text-transform: uppercase;
+   letter-spacing: 0.1em;
+   color: var(--text-muted);
+   margin-bottom: 0.5rem;
+   font-weight: 600;
+ }
+ 
+ input, select {
+   width: 100%;
+   background: rgba(0, 0, 0, 0.3);
+   border: 1px solid var(--glass-border);
+   color: white;
+   padding: 1rem;
+   border-radius: var(--radius-sm);
+   font-family: inherit;
+   font-size: 1rem;
+   transition: all 0.2s ease;
+   appearance: none; /* Removes default OS styling */
+ }
+ 
+ input:focus, select:focus {
+   outline: none;
+   border-color: var(--primary);
+   box-shadow: 0 0 0 4px var(--primary-glow);
+   background: rgba(0, 0, 0, 0.5);
+ }
+ 
+ /* 3. Buttons */
+ .btn {
+   border: none;
+   cursor: pointer;
+   padding: 1rem 2rem;
+   border-radius: var(--radius-sm);
+   font-weight: 700;
+   font-size: 1rem;
+   letter-spacing: 0.02em;
+   transition: all 0.2s;
+   display: inline-flex;
+   align-items: center;
+   justify-content: center;
+   gap: 0.5rem;
+ }
+ 
+ .btn:active { transform: scale(0.96); }
+ 
+ .btn.primary {
+   background: linear-gradient(135deg, var(--primary), oklch(60% 0.2 260));
+   color: white;
+   box-shadow: 0 4px 20px var(--primary-glow);
+ }
+ 
+ .btn.primary:hover {
+   filter: brightness(1.1);
+   box-shadow: 0 8px 25px var(--primary-glow);
+ }
+ 
+ .btn.secondary {
+   background: rgba(255,255,255,0.05);
+   color: var(--text-main);
+   border: 1px solid var(--glass-border);
+ }
+ 
+ .btn.secondary:hover {
+   background: rgba(255,255,255,0.1);
+ }
+ 
+ /* 4. List Items */
+ .transaction-list {
+   list-style: none;
+   padding: 0;
+   margin: 0;
+   display: flex;
+   flex-direction: column;
+   gap: 0.75rem;
+ }
+ 
+ .transaction-item {
+   display: flex;
+   align-items: center;
+   gap: 1rem;
+   padding: 1rem;
+   background: rgba(255,255,255,0.03);
+   border-radius: var(--radius-sm);
+   border: 1px solid transparent;
+   animation: slideUp 0.3s ease-out forwards;
+ }
+ 
+ .transaction-item:hover {
+   background: rgba(255,255,255,0.06);
+   border-color: var(--glass-border);
+ }
+ 
+ .t-icon { font-size: 1.5rem; }
+ .t-details { flex: 1; display: flex; flex-direction: column; }
+ .t-desc { font-weight: 600; color: var(--text-main); }
+ .t-meta { font-size: 0.8rem; color: var(--text-muted); font-family: 'JetBrains Mono', monospace; }
+ 
+ .t-amount {
+   font-family: 'JetBrains Mono', monospace;
+   font-weight: 700;
+   font-size: 1.1rem;
+ }
+ 
+ .t-delete {
+   width: 32px;
+   height: 32px;
+   display: flex;
+   align-items: center;
+   justify-content: center;
+   border-radius: 50%;
+   color: var(--text-muted);
+   cursor: pointer;
+   transition: all 0.2s;
+ }
+ 
+ .t-delete:hover {
+   background: rgba(239, 68, 68, 0.2);
+   color: var(--accent-red);
+ }
+ 
+ /* Animations */
+ @keyframes slideUp {
+   from { opacity: 0; transform: translateY(10px); }
+   to { opacity: 1; transform: translateY(0); }
+ }
+ 
+ /* Layout Container */
+ .app-container {
+   max-width: 600px; /* Tighter width for better mobile feel */
+   margin: 0 auto;
+   padding: 2rem 1rem;
+ }
+ 
+ .header {
+   display: flex;
+   justify-content: space-between;
+   align-items: center;
+   margin-bottom: 2rem;
+ }
+ 
+ .header h1 {
+   font-size: 1.75rem;
+   font-weight: 800;
+   letter-spacing: -0.03em;
+   background: linear-gradient(to right, #fff, #94a3b8);
+   -webkit-background-clip: text;
+   -webkit-text-fill-color: transparent;
+   margin: 0;
+ }
