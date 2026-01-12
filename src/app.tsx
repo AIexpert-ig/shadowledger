@@ -1,5 +1,4 @@
 // src/app.tsx
-import React from 'react'
 import { useLedgerStore } from './store/ledger'
 import { DashboardView } from './components/DashboardView'
 import { ReportView } from './components/ReportView'

@@ -1,5 +1,5 @@
 // src/components/TransactionItem.tsx
-import React from 'react'
+import { memo } from 'react'
 import type { LedgerEntry } from '../store/ledger'
 
 interface Props {
@@ -7,7 +7,7 @@ interface Props {
   onDelete: (id: string) => void
 }
 
-export const TransactionItem = React.memo(({ entry, onDelete }: Props) => {
+export const TransactionItem = memo(({ entry, onDelete }: Props) => {
   return (
     <li className="transaction-item">
       <div className="t-icon">{entry.type === 'COLLECT' ? '📥' : '📤'}</div>

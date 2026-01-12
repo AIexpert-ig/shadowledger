@@ -1,4 +1,3 @@
-import React from 'react';
 import { useLedgerStore } from '../store/ledger';
 
 export const StatsCard = () => {

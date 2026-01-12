@@ -1,5 +1,6 @@
 // src/components/TransactionForm.tsx
-import React, { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect } from 'react'
+import type { FormEvent, ChangeEvent } from 'react'
 import type { LedgerEntry } from '../store/ledger'
 import { useLedgerStore } from '../store/ledger'
 import { FileService } from '../services/file'
@@ -19,7 +20,7 @@ export const TransactionForm = () => {
     }
   }, [])
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
     if (!desc || !amount) return alert('Please fill details')
 
@@ -56,7 +57,7 @@ export const TransactionForm = () => {
           <select
             id="type"
             value={type}
-            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setType(e.target.value as 'COLLECT' | 'DEPOSIT')}
+            onChange={(e: ChangeEvent<HTMLSelectElement>) => setType(e.target.value as 'COLLECT' | 'DEPOSIT')}
           >
             <option value="COLLECT">📥 Collection (In)</option>
             <option value="DEPOSIT">📤 Deposit (Out)</option>

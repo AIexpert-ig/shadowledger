@@ -1,7 +1,6 @@
-import React from 'react'
 import { useLedgerStore } from '../store/ledger'
 
-export const ReportView: React.FC = () => {
+export const ReportView = () => {
   const txs = useLedgerStore(state => state.transactions)
   
   // FIX: Calculate totals here instead of reading from store

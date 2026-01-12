@@ -1,10 +1,9 @@
 // src/components/DashboardView.tsx
-import React from 'react'
 import { StatsCard } from './StatsCard'
 import { TransactionForm } from './TransactionForm'
 import { TransactionList } from './TransactionList'
 
-export const DashboardView: React.FC = () => (
+export const DashboardView = () => (
   <main className="app-container">
     <header className="header">
       <h1>🌑 Shadow Ledger</h1>

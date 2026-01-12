@@ -1,5 +1,5 @@
 // src/components/TransactionList.tsx
-import React, { useCallback, useMemo } from 'react'
+import { useCallback, useMemo } from 'react'
 import { useLedgerStore } from '../store/ledger'
 import { TransactionItem } from './TransactionItem'
 
