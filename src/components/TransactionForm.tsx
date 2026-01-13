@@ -6,7 +6,6 @@ import { LedgerEntry } from '../store/ledger'
 export const TransactionForm = () => {
   const [type, setType] = useState<'COLLECT' | 'DEPOSIT'>('COLLECT')
   const [desc, setDesc] = useState('')
-  // FIX: Use a string for amount to prevent number/null looping issues
   const [amountStr, setAmountStr] = useState('') 
   
   const fileRef = useRef<HTMLInputElement>(null)
@@ -21,12 +20,17 @@ export const TransactionForm = () => {
         return
     }
 
-    // Handle File
-    let imgBase64: string | undefined
+    // Handle File (PDF or Image)
+    let fileBase64: string | undefined
     const file = fileRef.current?.files?.[0]
+    
     if (file) {
-      if (file.size > 500_000) return alert('Image too large (Max 500KB)')
-      imgBase64 = await FileService.toBase64(file)
+      // LIMIT: 200KB limit to ensure LocalStorage doesn't break
+      if (file.size > 200_000) {
+        alert('File is too big! To ensure data saves, please use files under 200KB.')
+        return
+      }
+      fileBase64 = await FileService.toBase64(file)
     }
 
     const newTx: LedgerEntry = {
@@ -35,7 +39,7 @@ export const TransactionForm = () => {
       type,
       desc,
       amount: amtValue,
-      image: imgBase64
+      image: fileBase64 // This can now be a PDF or Image string
     }
 
     addTx(newTx)
@@ -64,7 +68,6 @@ export const TransactionForm = () => {
 
         <div className="input-group">
           <label htmlFor="amount">Amount</label>
-          {/* FIX: Controlled string input prevents the loop */}
           <input 
             id="amount" 
             type="number" 
@@ -76,8 +79,14 @@ export const TransactionForm = () => {
         </div>
 
         <div className="input-group">
-          <label htmlFor="file">Receipt Image</label>
-          <input id="file" ref={fileRef} type="file" accept="image/*" />
+          <label htmlFor="file">Receipt (PDF or Image)</label>
+          {/* FIX: Allow PDFs here */}
+          <input 
+            id="file" 
+            ref={fileRef} 
+            type="file" 
+            accept="image/*,application/pdf" 
+          />
         </div>
 
         <button type="submit" className="btn primary" style={{ width: '100%' }}>Save Entry</button>
